@@ -10,11 +10,31 @@ class LockRecord extends StatefulWidget {
   // ignore: sort_constructors_first
 
   final Widget? lockIcon;
+
+  final Duration durationLockRecordAnimatedPadding;
+
+  final Duration animatedOpacityLockRecord;
+
+  final Color? backGroundColorLockRecord;
+
+  final Widget? lockedIconLockRecord;
+
+  final Widget? unLockedIconLockRecord;
+
+  final BorderRadiusGeometry? borderRadiusLockRecord;
+
   const LockRecord({
     this.lockIcon,
     required this.soundRecorderState,
+    this.durationLockRecordAnimatedPadding = const Duration(seconds: 1),
+    this.animatedOpacityLockRecord = const Duration(milliseconds: 500),
+    this.backGroundColorLockRecord,
+    this.lockedIconLockRecord,
+    this.unLockedIconLockRecord,
+    this.borderRadiusLockRecord,
     Key? key,
   }) : super(key: key);
+
   @override
   _LockRecordState createState() => _LockRecordState();
 }
@@ -25,13 +45,13 @@ class _LockRecordState extends State<LockRecord> with TickerProviderStateMixin {
     /// If click the Button Then send show lock and un lock icon
     if (!widget.soundRecorderState.buttonPressed) return Container();
     return AnimatedPadding(
-      duration: const Duration(seconds: 1),
+      duration: widget.durationLockRecordAnimatedPadding,
       padding:
           EdgeInsets.all(widget.soundRecorderState.second % 2 == 0 ? 0 : 8),
       child: Transform.translate(
         offset: const Offset(0, -70),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: widget.borderRadiusLockRecord ?? BorderRadius.circular(12),
           child: AnimatedOpacity(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeIn,
@@ -40,7 +60,7 @@ class _LockRecordState extends State<LockRecord> with TickerProviderStateMixin {
               height: 50 - widget.soundRecorderState.heightPosition < 0
                   ? 0
                   : 50 - widget.soundRecorderState.heightPosition,
-              color: Colors.grey.shade100,
+              color: widget.backGroundColorLockRecord ?? Colors.grey.shade100,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: widget.lockIcon ??
@@ -49,7 +69,7 @@ class _LockRecordState extends State<LockRecord> with TickerProviderStateMixin {
                         Align(
                           alignment: Alignment.topCenter,
                           child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 500),
+                              duration: widget.animatedOpacityLockRecord,
                               curve: Curves.easeIn,
                               opacity: widget.soundRecorderState.second % 2 != 0
                                   ? 0
@@ -59,7 +79,7 @@ class _LockRecordState extends State<LockRecord> with TickerProviderStateMixin {
                         Align(
                           alignment: Alignment.topCenter,
                           child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 500),
+                              duration: widget.animatedOpacityLockRecord,
                               curve: Curves.easeIn,
                               opacity: widget.soundRecorderState.second % 2 == 0
                                   ? 0

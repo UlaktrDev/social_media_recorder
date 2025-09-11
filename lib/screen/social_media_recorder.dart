@@ -82,6 +82,30 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final double initRecordPackageWidth;
 
+  final Decoration? soundRecorderWhenLockedDecoration;
+
+  final double? soundRecorderWhenLockedWidth;
+
+  final double? counterWidth;
+
+  final EdgeInsetsGeometry? borderPadding;
+
+  final Widget? micCounterWidget;
+
+  final double? heightLockRecord;
+
+  final Duration durationLockRecordAnimatedPadding;
+
+  final Duration animatedOpacityLockRecord;
+
+  final Color? backGroundColorLockRecord;
+
+  final Widget? lockedIconLockRecord;
+
+  final Widget? unLockedIconLockRecord;
+
+  final BorderRadiusGeometry? borderRadiusLockRecord;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.sendButtonIcon,
@@ -107,6 +131,18 @@ class SocialMediaRecorder extends StatefulWidget {
     this.encode = AudioEncoderType.AAC,
     this.cancelTextBackGroundColor,
     this.radius,
+    this.soundRecorderWhenLockedDecoration,
+    this.soundRecorderWhenLockedWidth,
+    this.counterWidth,
+    this.borderPadding,
+    this.micCounterWidget,
+    this.durationLockRecordAnimatedPadding = const Duration(seconds: 1),
+    this.animatedOpacityLockRecord = const Duration(milliseconds: 500),
+    this.backGroundColorLockRecord,
+    this.lockedIconLockRecord,
+    this.unLockedIconLockRecord,
+    this.borderRadiusLockRecord,
+    this.heightLockRecord,
     Key? key,
   }) : super(key: key);
 
@@ -231,7 +267,7 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
                         : widget.radius != null && !soundRecordNotifier.isShow
                             ? widget.radius
                             : BorderRadius.circular(0),
-                    color: widget.backGroundColor ?? Colors.grey.shade100,
+                    color: widget.backGroundColor ?? Colors.transparent,
                   ),
                   child: Stack(
                     children: [
@@ -252,11 +288,15 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
                       if (soundRecordNotifier.isShow)
                         Center(
                           child: ShowCounter(
-                              counterBackGroundColor:
-                                  widget.counterBackGroundColor,
-                              soundRecorderState: state,
-                              fullRecordPackageHeight:
-                                  widget.fullRecordPackageHeight),
+                            counterBackGroundColor:
+                                widget.counterBackGroundColor,
+                            soundRecorderState: state,
+                            counterHeight: widget.fullRecordPackageHeight,
+                            counterTextStyle: widget.counterTextStyle,
+                            counterWidth: widget.counterWidth,
+                            borderPadding: widget.borderPadding,
+                            micCounterWidget: widget.micCounterWidget,
+                          ),
                         ),
                     ],
                   ),
@@ -264,10 +304,17 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
               ),
             ),
             SizedBox(
-              width: 60,
+              width: widget.heightLockRecord ?? 60,
               child: LockRecord(
                 soundRecorderState: state,
                 lockIcon: widget.lockButton,
+                backGroundColorLockRecord: widget.backGroundColorLockRecord,
+                durationLockRecordAnimatedPadding:
+                    widget.durationLockRecordAnimatedPadding,
+                animatedOpacityLockRecord: widget.animatedOpacityLockRecord,
+                borderRadiusLockRecord: widget.borderRadiusLockRecord,
+                lockedIconLockRecord: widget.lockedIconLockRecord,
+                unLockedIconLockRecord: widget.unLockedIconLockRecord,
               ),
             )
           ],
