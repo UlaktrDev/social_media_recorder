@@ -16,6 +16,7 @@ class ShowMicWithText extends StatelessWidget {
   final Color? counterBackGroundColor;
   final double fullRecordPackageHeight;
   final double initRecordPackageWidth;
+  final EdgeInsetsGeometry? slideToCancelPadding;
 
   // ignore: sort_constructors_first
   ShowMicWithText({
@@ -29,6 +30,7 @@ class ShowMicWithText extends StatelessWidget {
     required this.slideToCancelText,
     required this.recordIcon,
     required this.counterBackGroundColor,
+    this.slideToCancelPadding,
   }) : super(key: key);
   final colorizeColors = [
     Colors.black,
@@ -39,6 +41,7 @@ class ShowMicWithText extends StatelessWidget {
     fontSize: 14.0,
     fontFamily: 'Horizon',
   );
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -56,7 +59,7 @@ class ShowMicWithText extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(600),
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 500),
                   curve: Curves.easeIn,
                   width: soundRecorderState.buttonPressed
                       ? fullRecordPackageHeight
@@ -71,8 +74,9 @@ class ShowMicWithText extends StatelessWidget {
                       padding: const EdgeInsets.all(4.0),
                       child: recordIcon ??
                           Icon(
-                            Icons.mic,
-                            size: 24,
+                            Icons.send,
+                            textDirection: TextDirection.ltr,
+                            size: 20,
                             color: (soundRecorderState.buttonPressed)
                                 ? Colors.grey.shade200
                                 : Colors.black,
@@ -87,7 +91,8 @@ class ShowMicWithText extends StatelessWidget {
         if (shouldShowText)
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(left: 8, right: 8),
+              padding: slideToCancelPadding ??
+                  const EdgeInsets.only(left: 8, right: 8),
               child: DefaultTextStyle(
                 overflow: TextOverflow.clip,
                 maxLines: 1,
