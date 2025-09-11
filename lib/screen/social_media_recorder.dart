@@ -82,9 +82,13 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final double initRecordPackageWidth;
 
+  final double? fullRecordPackageWidth;
+
   final Decoration? soundRecorderWhenLockedDecoration;
 
   final double? soundRecorderWhenLockedWidth;
+
+  final EdgeInsetsGeometry? soundRecorderWhenLockedMargin;
 
   final double? counterWidth;
 
@@ -106,11 +110,14 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final BorderRadiusGeometry? borderRadiusLockRecord;
 
+  final EdgeInsetsGeometry? counterPadding;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.sendButtonIcon,
     this.initRecordPackageWidth = 40,
     this.fullRecordPackageHeight = 50,
+    this.fullRecordPackageWidth,
     this.maxRecordTimeInSecond,
     this.storeSoundRecoringPath = "",
     required this.sendRequestFunction,
@@ -143,6 +150,8 @@ class SocialMediaRecorder extends StatefulWidget {
     this.unLockedIconLockRecord,
     this.borderRadiusLockRecord,
     this.heightLockRecord,
+    this.counterPadding,
+    this.soundRecorderWhenLockedMargin,
     Key? key,
   }) : super(key: key);
 
@@ -187,32 +196,37 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
         child: Consumer<SoundRecordNotifier>(
           builder: (context, value, _) {
             return Directionality(
-                textDirection: TextDirection.rtl, child: makeBody(value));
+              textDirection: TextDirection.rtl,
+              child: makeBody(value),
+            );
           },
         ));
   }
 
   Widget makeBody(SoundRecordNotifier state) {
-    return Column(
-      children: [
-        GestureDetector(
-          onHorizontalDragUpdate: (scrollEnd) {
-            state.updateScrollValue(scrollEnd.globalPosition, context);
-          },
-          onHorizontalDragEnd: (x) {
-            if (state.buttonPressed && !state.isLocked) state.finishRecording();
-          },
-          child: Container(
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
+    return SizedBox(
+      height: widget.fullRecordPackageHeight,
+      child: Row(
+        children: [
+          GestureDetector(
+            onVerticalDragUpdate: (scrollUpdate) {
+              state.updateScrollVerticalValue(scrollUpdate.globalPosition);
+            },
+            onHorizontalDragUpdate: (scrollEnd) {
+              state.updateScrollHorizontalValue(
+                scrollEnd.globalPosition,
+                context,
+              );
+            },
+            onHorizontalDragEnd: (x) {
+              if (state.buttonPressed && !state.isLocked) {
+                state.finishRecording();
+              }
+            },
             child: recordVoice(state),
-          ),
-        )
-      ],
+          )
+        ],
+      ),
     );
   }
 
@@ -220,6 +234,7 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
     if (state.lockScreenRecord == true) {
       return SoundRecorderWhenLockedDesign(
         cancelText: widget.cancelText,
+
         fullRecordPackageHeight: widget.fullRecordPackageHeight,
         // cancelRecordFunction: widget.cacnelRecording ?? () {},
         sendButtonIcon: widget.sendButtonIcon,
@@ -233,6 +248,13 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
         sendRequestFunction: widget.sendRequestFunction,
         soundRecordNotifier: state,
         stopRecording: widget.stopRecording,
+        soundRecorderWhenLockedWidth: widget.soundRecorderWhenLockedWidth,
+        soundRecorderWhenLockedDecoration:
+            widget.soundRecorderWhenLockedDecoration,
+        soundRecorderWhenLockedMargin: widget.soundRecorderWhenLockedMargin,
+        counterWidth: widget.counterWidth,
+        micCounterWidget: widget.micCounterWidget,
+        counterPadding: widget.counterPadding,
       );
     }
 
@@ -253,7 +275,8 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
         duration: Duration(milliseconds: soundRecordNotifier.isShow ? 0 : 300),
         height: widget.fullRecordPackageHeight,
         width: (soundRecordNotifier.isShow)
-            ? MediaQuery.of(context).size.width
+            ? widget.soundRecorderWhenLockedWidth ??
+                MediaQuery.of(context).size.width
             : widget.initRecordPackageWidth,
         child: Stack(
           children: [
@@ -286,17 +309,15 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
                         ),
                       ),
                       if (soundRecordNotifier.isShow)
-                        Center(
-                          child: ShowCounter(
-                            counterBackGroundColor:
-                                widget.counterBackGroundColor,
-                            soundRecorderState: state,
-                            counterHeight: widget.fullRecordPackageHeight,
-                            counterTextStyle: widget.counterTextStyle,
-                            counterWidth: widget.counterWidth,
-                            borderPadding: widget.borderPadding,
-                            micCounterWidget: widget.micCounterWidget,
-                          ),
+                        ShowCounter(
+                          counterBackGroundColor: widget.counterBackGroundColor,
+                          soundRecorderState: state,
+                          counterHeight: widget.fullRecordPackageHeight,
+                          counterTextStyle: widget.counterTextStyle,
+                          counterWidth: widget.counterWidth,
+                          borderPadding: widget.borderPadding,
+                          micCounterWidget: widget.micCounterWidget,
+                          counterPadding: widget.counterPadding,
                         ),
                     ],
                   ),

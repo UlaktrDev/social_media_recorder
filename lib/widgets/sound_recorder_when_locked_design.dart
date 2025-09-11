@@ -21,8 +21,9 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
   final Decoration? soundRecorderWhenLockedDecoration;
   final double? soundRecorderWhenLockedWidth;
   final double? counterWidth;
-  final EdgeInsetsGeometry? borderPadding;
+  final EdgeInsetsGeometry? soundRecorderWhenLockedMargin;
   final Widget? micCounterWidget;
+  final EdgeInsetsGeometry? counterPadding;
 
   // ignore: sort_constructors_first
   const SoundRecorderWhenLockedDesign({
@@ -41,9 +42,10 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
     required this.cancelTextBackGroundColor,
     this.soundRecorderWhenLockedDecoration,
     this.soundRecorderWhenLockedWidth,
-    this.borderPadding,
+    this.soundRecorderWhenLockedMargin,
     this.counterWidth,
     this.micCounterWidget,
+    this.counterPadding,
   }) : super(key: key);
 
   @override
@@ -58,6 +60,7 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
               topRight: Radius.circular(24),
             ),
           ),
+      margin: soundRecorderWhenLockedMargin,
       child: InkWell(
         onTap: () {
           soundRecordNotifier.isShow = false;
@@ -88,7 +91,7 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                             Icon(
                               Icons.send,
                               textDirection: TextDirection.ltr,
-                              size: 28,
+                              size: 20,
                               color: (soundRecordNotifier.buttonPressed)
                                   ? Colors.grey.shade200
                                   : Colors.black,
@@ -129,8 +132,9 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
               counterBackGroundColor: counterBackGroundColor,
               counterHeight: fullRecordPackageHeight,
               counterWidth: counterWidth,
-              borderPadding: borderPadding,
+              borderPadding: soundRecorderWhenLockedMargin,
               micCounterWidget: micCounterWidget,
+              counterPadding: counterPadding,
             ),
           ],
         ),

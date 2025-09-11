@@ -163,7 +163,8 @@ class SoundRecordNotifier extends ChangeNotifier {
   Future<String> getFilePath() async {
     String _sdPath = "";
     Directory tempDir = await getTemporaryDirectory();
-    _sdPath = initialStorePathRecord.isEmpty ? tempDir.path : initialStorePathRecord;
+    _sdPath =
+        initialStorePathRecord.isEmpty ? tempDir.path : initialStorePathRecord;
     var d = Directory(_sdPath);
     if (!d.existsSync()) {
       d.createSync(recursive: true);
@@ -173,40 +174,44 @@ class SoundRecordNotifier extends ChangeNotifier {
         "${_counter.toString()}${now.year.toString()}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}-${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
     // print("the current data is $convertedDateTime");
     _counter++;
-    String storagePath = _sdPath + "/" + convertedDateTime + _getSoundExtention();
+    String storagePath =
+        _sdPath + "/" + convertedDateTime + _getSoundExtention();
     mPath = storagePath;
     return storagePath;
   }
 
   /// used to change the draggable to top value
   setNewInitialDraggableHeight(double newValue) {
+    print("DCM the new value is $newValue");
     currentButtonHeihtPlace = newValue;
   }
 
   double _initWidth = -33;
 
+  updateScrollVerticalValue(Offset currentValue) {
+    /// take the diffrent between the origin and the current
+    /// draggable to the top place
+    double hightValue = currentButtonHeihtPlace - currentValue.dy;
+
+    /// if reached to the max draggable value in the top
+    if (hightValue >= 50) {
+      isLocked = true;
+      lockScreenRecord = true;
+      hightValue = 50;
+      notifyListeners();
+    }
+    if (hightValue < 0) hightValue = 0;
+    heightPosition = hightValue;
+    lockScreenRecord = isLocked;
+    notifyListeners();
+  }
+
   /// used to change the draggable to top value
   /// or To The X vertical
   /// and update this value in screen
-  updateScrollValue(Offset currentValue, BuildContext context) async {
+  updateScrollHorizontalValue(Offset currentValue, BuildContext context) async {
     if (buttonPressed == true) {
       final x = currentValue;
-
-      /// take the diffrent between the origin and the current
-      /// draggable to the top place
-      double hightValue = currentButtonHeihtPlace - x.dy;
-
-      /// if reached to the max draggable value in the top
-      if (hightValue >= 50) {
-        isLocked = true;
-        lockScreenRecord = true;
-        hightValue = 50;
-        notifyListeners();
-      }
-      if (hightValue < 0) hightValue = 0;
-      heightPosition = hightValue;
-      lockScreenRecord = isLocked;
-      notifyListeners();
 
       /// this operation for update X oriantation
       /// draggable to the left or right place

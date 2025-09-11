@@ -72,7 +72,7 @@ class ShowMicWithText extends StatelessWidget {
                       child: recordIcon ??
                           Icon(
                             Icons.mic,
-                            size: 28,
+                            size: 24,
                             color: (soundRecorderState.buttonPressed)
                                 ? Colors.grey.shade200
                                 : Colors.black,

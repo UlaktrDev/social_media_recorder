@@ -11,6 +11,7 @@ class ShowCounter extends StatelessWidget {
   final double counterHeight;
   final double? counterWidth;
   final EdgeInsetsGeometry? borderPadding;
+  final EdgeInsetsGeometry? counterPadding;
   final Widget? micCounterWidget;
 
   // ignore: sort_constructors_first
@@ -23,6 +24,7 @@ class ShowCounter extends StatelessWidget {
     this.counterWidth,
     this.borderPadding,
     this.micCounterWidget,
+    this.counterPadding,
   }) : super(key: key);
 
   @override
@@ -31,32 +33,33 @@ class ShowCounter extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: Container(
         height: counterHeight,
-        width: counterWidth ?? MediaQuery.of(context).size.width * 0.4,
         color: counterBackGroundColor ?? Colors.transparent,
         padding: borderPadding ?? const EdgeInsets.symmetric(horizontal: 10),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  soundRecorderState.second.toString().padLeft(2, '0'),
-                  style:
-                      counterTextStyle ?? const TextStyle(color: Colors.black),
-                ),
-                Text(
-                  " : ",
-                  style: counterTextStyle,
-                ),
-                Text(
-                  soundRecorderState.minute.toString().padLeft(2, '0'),
-                  style:
-                      counterTextStyle ?? const TextStyle(color: Colors.black),
-                ),
-              ],
+            Padding(
+              padding: counterPadding ?? EdgeInsets.zero,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    soundRecorderState.second.toString().padLeft(2, '0'),
+                    style: counterTextStyle ??
+                        const TextStyle(color: Colors.black),
+                  ),
+                  Text(
+                    " : ",
+                    style: counterTextStyle,
+                  ),
+                  Text(
+                    soundRecorderState.minute.toString().padLeft(2, '0'),
+                    style: counterTextStyle ??
+                        const TextStyle(color: Colors.black),
+                  ),
+                ],
+              ),
             ),
             AnimatedOpacity(
               duration: const Duration(seconds: 1),
