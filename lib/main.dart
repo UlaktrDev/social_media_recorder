@@ -40,11 +40,16 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(top: 140, left: 4, right: 4),
+          padding: const EdgeInsets.only(top: 140, left: 4, right: 20),
           child: Align(
             alignment: Alignment.centerRight,
             child: SocialMediaRecorder(
               // maxRecordTimeInSecond: 5,
+              recordIcon: const Icon(
+                Icons.keyboard_voice_outlined,
+                color: Colors.blue,
+              ),
+              soundRecorderWhenLockedWidth: 350,
               startRecording: () {
                 // function called when start recording
               },

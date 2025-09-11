@@ -12,7 +12,7 @@ class ShowMicWithText extends StatelessWidget {
   final SoundRecordNotifier soundRecorderState;
   final TextStyle? slideToCancelTextStyle;
   final Color? backGroundColor;
-  final Widget? recordIcon;
+  final Widget recordIcon;
   final Color? counterBackGroundColor;
   final double fullRecordPackageHeight;
   final double initRecordPackageWidth;
@@ -72,15 +72,16 @@ class ShowMicWithText extends StatelessWidget {
                         : Colors.transparent,
                     child: Padding(
                       padding: const EdgeInsets.all(4.0),
-                      child: recordIcon ??
-                          Icon(
-                            Icons.send,
-                            textDirection: TextDirection.ltr,
-                            size: 20,
-                            color: (soundRecorderState.buttonPressed)
-                                ? Colors.grey.shade200
-                                : Colors.black,
-                          ),
+                      child: soundRecorderState.buttonPressed
+                          ? Icon(
+                              Icons.send,
+                              textDirection: TextDirection.ltr,
+                              size: 20,
+                              color: (soundRecorderState.buttonPressed)
+                                  ? Colors.grey.shade200
+                                  : Colors.black,
+                            )
+                          : recordIcon,
                     ),
                   ),
                 ),

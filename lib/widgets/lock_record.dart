@@ -51,7 +51,8 @@ class _LockRecordState extends State<LockRecord> with TickerProviderStateMixin {
       child: Transform.translate(
         offset: const Offset(0, -70),
         child: ClipRRect(
-          borderRadius: widget.borderRadiusLockRecord ?? BorderRadius.circular(12),
+          borderRadius:
+              widget.borderRadiusLockRecord ?? BorderRadius.circular(12),
           child: AnimatedOpacity(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeIn,

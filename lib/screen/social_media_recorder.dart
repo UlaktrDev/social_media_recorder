@@ -25,7 +25,7 @@ class SocialMediaRecorder extends StatefulWidget {
   final Function(String time)? stopRecording;
 
   /// recording Icon That pressesd to start record
-  final Widget? recordIcon;
+  final Widget recordIcon;
 
   /// recording Icon when user locked the record
   final Widget? recordIconWhenLockedRecord;
@@ -123,7 +123,7 @@ class SocialMediaRecorder extends StatefulWidget {
     required this.sendRequestFunction,
     this.startRecording,
     this.stopRecording,
-    this.recordIcon,
+    required this.recordIcon,
     this.lockButton,
     this.counterBackGroundColor,
     this.recordIconWhenLockedRecord,
