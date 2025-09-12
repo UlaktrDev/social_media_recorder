@@ -151,19 +151,25 @@ class SoundRecordNotifier extends ChangeNotifier {
     lockScreenRecord = false;
     if (_timer != null) _timer!.cancel();
     if (_timerCounter != null) _timerCounter!.cancel();
-    final value = await recordMp3.isRecording();
+    try {
+      final value = await recordMp3.isRecording();
 
-    if (value == true) {
-      recordMp3.stop().then((x) {
-        recordMp3 = AudioRecorder();
+      if (value == true) {
+        recordMp3.stop().then((x) {
+          recordMp3 = AudioRecorder();
+          notifyListeners();
+        }).onError((error, stackTrace) {
+          debugPrint('Error stopping recording: $error');
+          stopRecording!('');
+          notifyListeners();
+        });
         notifyListeners();
-      }).onError((error, stackTrace) {
-        debugPrint('Error stopping recording: $error');
-        stopRecording!('');
-        notifyListeners();
-      });
-      notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error checking recording status: $e');
+      stopRecording!('');
     }
+
     notifyListeners();
   }
 
