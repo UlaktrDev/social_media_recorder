@@ -71,7 +71,7 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   /// function called when start recording
   Function()? startRecording;
-  Function(File soundFile, String time, List<int> waveFrom) sendRequestFunction;
+  Function(File soundFile, Duration time, List<int> waveFrom) sendRequestFunction;
 
   /// function called when stop recording, return the recording time (even if time < 1)
   Function(String time)? stopRecording;
@@ -112,7 +112,7 @@ class SoundRecordNotifier extends ChangeNotifier {
     if (buttonPressed) {
       if (second > 1 || minute > 0) {
         String path = mPath;
-        String _time = minute.toString() + ":" + second.toString();
+        Duration _time = Duration(minutes: minute, seconds: second);
         final step = _amplitudeTimeline.length < waveCount
             ? 1
             : (_amplitudeTimeline.length / waveCount).round();
@@ -121,7 +121,7 @@ class SoundRecordNotifier extends ChangeNotifier {
           waveform.add((_amplitudeTimeline[i] / 100 * 1024).round());
         }
         sendRequestFunction(File.fromUri(Uri(path: path)), _time, waveform);
-        stopRecording!(_time);
+        stopRecording!(minute.toString() + ":" + second.toString());
         _recorderSubscription?.cancel();
       }
     }
