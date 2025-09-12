@@ -45,6 +45,7 @@ class _MyHomePageState extends State<MyHomePage> {
             alignment: Alignment.centerRight,
             child: SocialMediaRecorder(
               // maxRecordTimeInSecond: 5,
+              autoRequestPermission: true,
               recordIcon: const Icon(
                 Icons.keyboard_voice_outlined,
                 color: Colors.blue,

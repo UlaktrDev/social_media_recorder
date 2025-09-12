@@ -2,6 +2,7 @@ library social_media_recorder;
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:social_media_recorder/provider/sound_record_notifier.dart';
 import 'package:social_media_recorder/widgets/lock_record.dart';
@@ -112,8 +113,13 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final EdgeInsetsGeometry? counterPadding;
 
+  final Function()? microphoneRequestPermission;
+
+  final bool autoRequestPermission;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
+    this.microphoneRequestPermission,
     this.sendButtonIcon,
     this.initRecordPackageWidth = 40,
     this.fullRecordPackageHeight = 50,
@@ -152,6 +158,7 @@ class SocialMediaRecorder extends StatefulWidget {
     this.heightLockRecord,
     this.counterPadding,
     this.soundRecorderWhenLockedMargin,
+    this.autoRequestPermission = false,
     Key? key,
   }) : super(key: key);
 
@@ -174,7 +181,10 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
     soundRecordNotifier.initialStorePathRecord =
         widget.storeSoundRecoringPath ?? "";
     soundRecordNotifier.isShow = false;
-    soundRecordNotifier.voidInitialSound();
+    if (widget.autoRequestPermission) {
+      soundRecordNotifier.voidInitialSound();
+    }
+
     super.initState();
   }
 
@@ -260,6 +270,11 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
 
     return Listener(
       onPointerDown: (details) async {
+        final currentStatus = await state.currentStatusPermission();
+        if (currentStatus != PermissionStatus.granted) {
+          widget.microphoneRequestPermission?.call();
+          return;
+        }
         state.setNewInitialDraggableHeight(details.position.dy);
         state.resetEdgePadding();
 

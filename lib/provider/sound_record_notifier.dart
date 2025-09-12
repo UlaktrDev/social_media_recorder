@@ -93,9 +93,7 @@ class SoundRecordNotifier extends ChangeNotifier {
     this.lockScreenRecord = false,
     this.encode = AudioEncoderType.AAC,
     this.maxRecordTime,
-  }) {
-    record(() {});
-  }
+  });
 
   /// To increase counter after 1 sencond
   void _mapCounterGenerater() {
@@ -182,7 +180,6 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   /// used to change the draggable to top value
   setNewInitialDraggableHeight(double newValue) {
-    print("DCM the new value is $newValue");
     currentButtonHeihtPlace = newValue;
   }
 
@@ -212,6 +209,8 @@ class SoundRecordNotifier extends ChangeNotifier {
   updateScrollHorizontalValue(Offset currentValue, BuildContext context) async {
     if (buttonPressed == true) {
       final x = currentValue;
+
+      updateScrollVerticalValue(currentValue);
 
       /// this operation for update X oriantation
       /// draggable to the left or right place
@@ -298,6 +297,11 @@ class SoundRecordNotifier extends ChangeNotifier {
       notifyListeners();
     }
     notifyListeners();
+  }
+
+  Future<PermissionStatus> currentStatusPermission() async {
+    final status = await Permission.microphone.status;
+    return status;
   }
 
   /// to check permission

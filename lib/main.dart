@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:social_media_recorder/audio_encoder_type.dart';
 import 'package:social_media_recorder/screen/social_media_recorder.dart';
 
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
+
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
@@ -44,7 +46,14 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Align(
             alignment: Alignment.centerRight,
             child: SocialMediaRecorder(
+              autoRequestPermission: true,
               // maxRecordTimeInSecond: 5,
+              microphoneRequestPermission: () async {
+                // function called when you need to request the permission
+                await Permission.microphone.request();
+                await Permission.manageExternalStorage.request();
+                await Permission.storage.request();
+              },
               recordIcon: const Icon(
                 Icons.keyboard_voice_outlined,
                 color: Colors.blue,
