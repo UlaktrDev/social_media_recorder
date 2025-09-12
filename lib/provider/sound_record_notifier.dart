@@ -71,7 +71,8 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   /// function called when start recording
   Function()? startRecording;
-  Function(File soundFile, Duration time, List<int> waveFrom) sendRequestFunction;
+  Function(File soundFile, Duration time, List<int> waveFrom)
+      sendRequestFunction;
 
   /// function called when stop recording, return the recording time (even if time < 1)
   Function(String time)? stopRecording;
@@ -155,6 +156,10 @@ class SoundRecordNotifier extends ChangeNotifier {
     if (value == true) {
       recordMp3.stop().then((x) {
         recordMp3 = AudioRecorder();
+        notifyListeners();
+      }).onError((error, stackTrace) {
+        debugPrint('Error stopping recording: $error');
+        stopRecording!('');
         notifyListeners();
       });
       notifyListeners();
@@ -299,32 +304,37 @@ class SoundRecordNotifier extends ChangeNotifier {
       await Permission.storage.request();
       _isAcceptedPermission = true;
     } else {
-      buttonPressed = true;
-      String recordFilePath = await getFilePath();
-      if (_timer != null) {
-        _timer?.cancel();
+      try {
+        buttonPressed = true;
+        String recordFilePath = await getFilePath();
+        if (_timer != null) {
+          _timer?.cancel();
+        }
+
+        _recorderSubscription?.cancel();
+        _recorderSubscription =
+            Timer.periodic(const Duration(milliseconds: 100), (_) async {
+          final amplitude = await recordMp3.getAmplitude();
+          var value = 100 + amplitude.current * 2;
+          value = value < 1 ? 1 : value;
+          _amplitudeTimeline.add(value);
+        });
+        _timer = Timer(const Duration(milliseconds: 100), () async {
+          recordMp3.start(const RecordConfig(), path: recordFilePath);
+        });
+
+        if (startRecord != null) {
+          startRecord();
+        }
+
+        _mapCounterGenerater();
+        notifyListeners();
+      } catch (e) {
+        debugPrint('Error starting recording: $e');
+        stopRecording!('');
       }
-
-      _recorderSubscription?.cancel();
-      _recorderSubscription =
-          Timer.periodic(const Duration(milliseconds: 100), (_) async {
-        final amplitude = await recordMp3.getAmplitude();
-        var value = 100 + amplitude.current * 2;
-        value = value < 1 ? 1 : value;
-        _amplitudeTimeline.add(value);
-      });
-      _timer = Timer(const Duration(milliseconds: 100), () async {
-        recordMp3.start(const RecordConfig(), path: recordFilePath);
-      });
-
-      if (startRecord != null) {
-        startRecord();
-      }
-
-      _mapCounterGenerater();
       notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<PermissionStatus> currentStatusPermission() async {
