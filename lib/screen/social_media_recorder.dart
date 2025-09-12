@@ -117,6 +117,8 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final bool autoRequestPermission;
 
+  final EdgeInsetsGeometry? slideToCancelPadding;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.microphoneRequestPermission,
@@ -159,6 +161,7 @@ class SocialMediaRecorder extends StatefulWidget {
     this.counterPadding,
     this.soundRecorderWhenLockedMargin,
     this.autoRequestPermission = false,
+    this.slideToCancelPadding,
     Key? key,
   }) : super(key: key);
 
@@ -321,6 +324,7 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
                           soundRecorderState: state,
                           slideToCancelTextStyle: widget.slideToCancelTextStyle,
                           slideToCancelText: widget.slideToCancelText,
+                          slideToCancelPadding: widget.slideToCancelPadding,
                         ),
                       ),
                       if (soundRecordNotifier.isShow)
