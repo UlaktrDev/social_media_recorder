@@ -123,9 +123,12 @@ class SoundRecordNotifier extends ChangeNotifier {
         sendRequestFunction(File.fromUri(Uri(path: path)), _time, waveform);
         stopRecording!(minute.toString() + ":" + second.toString());
         _recorderSubscription?.cancel();
+        resetEdgePadding();
+        return;
       }
+      stopRecording!('');
+      resetEdgePadding();
     }
-    resetEdgePadding();
   }
 
   /// used to reset all value to initial value when end the record
