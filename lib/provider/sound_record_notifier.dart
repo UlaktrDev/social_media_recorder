@@ -313,14 +313,24 @@ class SoundRecordNotifier extends ChangeNotifier {
 
         _recorderSubscription?.cancel();
         _recorderSubscription =
-            Timer.periodic(const Duration(milliseconds: 100), (_) async {
-          final amplitude = await recordMp3.getAmplitude();
-          var value = 100 + amplitude.current * 2;
-          value = value < 1 ? 1 : value;
-          _amplitudeTimeline.add(value);
+            Timer.periodic(const Duration(milliseconds: 300), (_) async {
+          try {
+            final amplitude = await recordMp3.getAmplitude();
+            var value = 100 + amplitude.current * 2;
+            value = value < 1 ? 1 : value;
+            _amplitudeTimeline.add(value);
+          } catch (e) {
+            debugPrint('Error getting amplitude: $e');
+            rethrow;
+          }
         });
-        _timer = Timer(const Duration(milliseconds: 100), () async {
-          recordMp3.start(const RecordConfig(), path: recordFilePath);
+        _timer = Timer(const Duration(milliseconds: 300), () async {
+          try {
+            await recordMp3.start(const RecordConfig(), path: recordFilePath);
+          } catch (e) {
+            debugPrint('Error starting recording: $e');
+            rethrow;
+          }
         });
 
         if (startRecord != null) {
