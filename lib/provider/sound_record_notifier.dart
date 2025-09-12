@@ -13,6 +13,8 @@ class SoundRecordNotifier extends ChangeNotifier {
   int _localCounterForMaxRecordTime = 0;
   GlobalKey key = GlobalKey();
   int? maxRecordTime;
+  final List<double> _amplitudeTimeline = [];
+  Timer? _recorderSubscription;
 
   /// This Timer Just For wait about 1 second until starting record
   Timer? _timer;
@@ -69,12 +71,14 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   /// function called when start recording
   Function()? startRecording;
-  Function(File soundFile, String time) sendRequestFunction;
+  Function(File soundFile, String time, List<int> waveFrom) sendRequestFunction;
 
   /// function called when stop recording, return the recording time (even if time < 1)
   Function(String time)? stopRecording;
 
   late AudioEncoderType encode;
+
+  late int waveCount;
 
   // ignore: sort_constructors_first
 
@@ -82,6 +86,7 @@ class SoundRecordNotifier extends ChangeNotifier {
     required this.stopRecording,
     required this.sendRequestFunction,
     required this.startRecording,
+    required this.waveCount,
     this.edge = 0.0,
     this.minute = 0,
     this.second = 0,
@@ -108,8 +113,16 @@ class SoundRecordNotifier extends ChangeNotifier {
       if (second > 1 || minute > 0) {
         String path = mPath;
         String _time = minute.toString() + ":" + second.toString();
-        sendRequestFunction(File.fromUri(Uri(path: path)), _time);
+        final step = _amplitudeTimeline.length < waveCount
+            ? 1
+            : (_amplitudeTimeline.length / waveCount).round();
+        final waveform = <int>[];
+        for (var i = 0; i < _amplitudeTimeline.length; i += step) {
+          waveform.add((_amplitudeTimeline[i] / 100 * 1024).round());
+        }
+        sendRequestFunction(File.fromUri(Uri(path: path)), _time, waveform);
         stopRecording!(_time);
+        _recorderSubscription?.cancel();
       }
     }
     resetEdgePadding();
@@ -219,7 +232,10 @@ class SoundRecordNotifier extends ChangeNotifier {
         Offset position = box.localToGlobal(Offset.zero);
         if (position.dx <= MediaQuery.of(context).size.width * 0.6) {
           String _time = minute.toString() + ":" + second.toString();
-          if (stopRecording != null) stopRecording!(_time);
+          if (stopRecording != null) {
+            stopRecording!(_time);
+            _recorderSubscription?.cancel();
+          }
           resetEdgePadding();
         } else if (x.dx >= MediaQuery.of(context).size.width) {
           edge = 0;
@@ -285,7 +301,16 @@ class SoundRecordNotifier extends ChangeNotifier {
       if (_timer != null) {
         _timer?.cancel();
       }
-      _timer = Timer(const Duration(milliseconds: 400), () {
+
+      _recorderSubscription?.cancel();
+      _recorderSubscription =
+          Timer.periodic(const Duration(milliseconds: 100), (_) async {
+        final amplitude = await recordMp3.getAmplitude();
+        var value = 100 + amplitude.current * 2;
+        value = value < 1 ? 1 : value;
+        _amplitudeTimeline.add(value);
+      });
+      _timer = Timer(const Duration(milliseconds: 100), () async {
         recordMp3.start(const RecordConfig(), path: recordFilePath);
       });
 

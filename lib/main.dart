@@ -65,8 +65,10 @@ class _MyHomePageState extends State<MyHomePage> {
               stopRecording: (_time) {
                 // function called when stop recording, return the recording time
               },
-              sendRequestFunction: (soundFile, _time) {
-                //  print("the current path is ${soundFile.path}");
+              sendRequestFunction: (soundFile, _time, waveFrom) {
+                debugPrint(
+                  "the current path is ${soundFile.path} and the time is $_time seconds and waveFrom is $waveFrom",
+                );
               },
               encode: AudioEncoderType.AAC,
               // storeSoundRecoringPath: "/storage/emulated/0/new_record_sound",

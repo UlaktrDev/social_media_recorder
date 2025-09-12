@@ -17,7 +17,7 @@ class SocialMediaRecorder extends StatefulWidget {
   final Color? cancelTextBackGroundColor;
 
   /// function return the recording sound file and the time
-  final Function(File soundFile, String time) sendRequestFunction;
+  final Function(File soundFile, String time, List<int> waveForm) sendRequestFunction;
 
   /// function called when start recording
   final Function()? startRecording;
@@ -119,10 +119,13 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final EdgeInsetsGeometry? slideToCancelPadding;
 
+  final int waveCount;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.microphoneRequestPermission,
     this.sendButtonIcon,
+    this.waveCount = 40,
     this.initRecordPackageWidth = 40,
     this.fullRecordPackageHeight = 50,
     this.fullRecordPackageWidth,
@@ -179,6 +182,7 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
       startRecording: widget.startRecording ?? () {},
       stopRecording: widget.stopRecording ?? (String x) {},
       sendRequestFunction: widget.sendRequestFunction,
+      waveCount: widget.waveCount,
     );
 
     soundRecordNotifier.initialStorePathRecord =
