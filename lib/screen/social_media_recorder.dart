@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:record/record.dart';
 import 'package:social_media_recorder/provider/sound_record_notifier.dart';
 import 'package:social_media_recorder/widgets/lock_record.dart';
 import 'package:social_media_recorder/widgets/show_counter.dart';
@@ -17,7 +18,8 @@ class SocialMediaRecorder extends StatefulWidget {
   final Color? cancelTextBackGroundColor;
 
   /// function return the recording sound file and the time
-  final Function(File soundFile, Duration time, List<int> waveForm) sendRequestFunction;
+  final Function(File soundFile, Duration time, List<int> waveForm)
+      sendRequestFunction;
 
   /// function called when start recording
   final Function()? startRecording;
@@ -121,6 +123,8 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final int waveCount;
 
+  final RecordConfig? recordConfig;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.microphoneRequestPermission,
@@ -165,6 +169,7 @@ class SocialMediaRecorder extends StatefulWidget {
     this.soundRecorderWhenLockedMargin,
     this.autoRequestPermission = false,
     this.slideToCancelPadding,
+    this.recordConfig,
     Key? key,
   }) : super(key: key);
 
@@ -183,6 +188,7 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
       stopRecording: widget.stopRecording ?? (String x) {},
       sendRequestFunction: widget.sendRequestFunction,
       waveCount: widget.waveCount,
+      recordConfig: widget.recordConfig,
     );
 
     soundRecordNotifier.initialStorePathRecord =

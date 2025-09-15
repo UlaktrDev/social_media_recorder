@@ -81,6 +81,8 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   late int waveCount;
 
+  late RecordConfig? recordConfig;
+
   // ignore: sort_constructors_first
 
   SoundRecordNotifier({
@@ -99,6 +101,7 @@ class SoundRecordNotifier extends ChangeNotifier {
     this.lockScreenRecord = false,
     this.encode = AudioEncoderType.AAC,
     this.maxRecordTime,
+    this.recordConfig = const RecordConfig(),
   });
 
   /// To increase counter after 1 sencond
@@ -109,7 +112,8 @@ class SoundRecordNotifier extends ChangeNotifier {
     });
   }
 
-  finishRecording() {
+  Future<void> finishRecording() async {
+    await Future.delayed(const Duration(milliseconds: 400));
     if (buttonPressed) {
       if (second > 1 || minute > 0) {
         String path = mPath;
@@ -127,9 +131,11 @@ class SoundRecordNotifier extends ChangeNotifier {
         resetEdgePadding();
         return;
       }
-      stopRecording!('');
-      resetEdgePadding();
     }
+
+    stopRecording!('');
+    _recorderSubscription?.cancel();
+    resetEdgePadding();
   }
 
   /// used to reset all value to initial value when end the record
@@ -157,13 +163,12 @@ class SoundRecordNotifier extends ChangeNotifier {
       if (value == true) {
         recordMp3.stop().then((x) {
           recordMp3 = AudioRecorder();
-          notifyListeners();
         }).onError((error, stackTrace) {
           debugPrint('Error stopping recording: $error');
           stopRecording!('');
-          notifyListeners();
         });
-        notifyListeners();
+      } else {
+        stopRecording!('');
       }
     } catch (e) {
       debugPrint('Error checking recording status: $e');
@@ -319,7 +324,7 @@ class SoundRecordNotifier extends ChangeNotifier {
 
         _recorderSubscription?.cancel();
         _recorderSubscription =
-            Timer.periodic(const Duration(milliseconds: 300), (_) async {
+            Timer.periodic(const Duration(milliseconds: 100), (_) async {
           try {
             final amplitude = await recordMp3.getAmplitude();
             var value = 100 + amplitude.current * 2;
@@ -330,9 +335,12 @@ class SoundRecordNotifier extends ChangeNotifier {
             rethrow;
           }
         });
-        _timer = Timer(const Duration(milliseconds: 300), () async {
+        _timer = Timer(const Duration(milliseconds: 100), () async {
           try {
-            await recordMp3.start(const RecordConfig(), path: recordFilePath);
+            await recordMp3.start(
+              recordConfig ?? const RecordConfig(),
+              path: recordFilePath,
+            );
           } catch (e) {
             debugPrint('Error starting recording: $e');
             rethrow;
