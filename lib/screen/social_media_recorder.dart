@@ -125,6 +125,8 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final RecordConfig? recordConfig;
 
+  final Decoration? decoration;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.microphoneRequestPermission,
@@ -170,6 +172,7 @@ class SocialMediaRecorder extends StatefulWidget {
     this.autoRequestPermission = false,
     this.slideToCancelPadding,
     this.recordConfig,
+    this.decoration,
     Key? key,
   }) : super(key: key);
 
@@ -312,14 +315,17 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
               child: Padding(
                 padding: EdgeInsets.only(right: state.edge),
                 child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: soundRecordNotifier.isShow
-                        ? BorderRadius.circular(12)
-                        : widget.radius != null && !soundRecordNotifier.isShow
-                            ? widget.radius
-                            : BorderRadius.circular(0),
-                    color: widget.backGroundColor ?? Colors.transparent,
-                  ),
+                  decoration: soundRecordNotifier.isShow
+                      ? widget.decoration
+                      : BoxDecoration(
+                          borderRadius: soundRecordNotifier.isShow
+                              ? BorderRadius.circular(12)
+                              : widget.radius != null &&
+                                      !soundRecordNotifier.isShow
+                                  ? widget.radius
+                                  : BorderRadius.circular(0),
+                          color: widget.backGroundColor ?? Colors.transparent,
+                        ),
                   child: Stack(
                     children: [
                       Center(
