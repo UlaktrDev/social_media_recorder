@@ -169,8 +169,6 @@ class SoundRecordNotifier extends ChangeNotifier {
           debugPrint('Error stopping recording: $error');
           stopRecording!('');
         });
-      } else {
-        stopRecording!('');
       }
     } catch (e) {
       debugPrint('Error checking recording status: $e');
