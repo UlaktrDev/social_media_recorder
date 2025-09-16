@@ -390,4 +390,23 @@ class SoundRecordNotifier extends ChangeNotifier {
       Vibration.vibrate(preset: VibrationPreset.singleShortBuzz);
     }
   }
+
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      stopRecording!('');
+      _recorderSubscription?.cancel();
+      resetEdgePadding();
+    }
+  }
+
+  @override
+  dispose() {
+    _recorderSubscription?.cancel();
+    _timer?.cancel();
+    _timerCounter?.cancel();
+    recordMp3.cancel();
+    super.dispose();
+  }
 }

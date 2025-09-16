@@ -180,11 +180,13 @@ class SocialMediaRecorder extends StatefulWidget {
   _SocialMediaRecorder createState() => _SocialMediaRecorder();
 }
 
-class _SocialMediaRecorder extends State<SocialMediaRecorder> {
+class _SocialMediaRecorder extends State<SocialMediaRecorder>
+    with WidgetsBindingObserver {
   late SoundRecordNotifier soundRecordNotifier;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     soundRecordNotifier = SoundRecordNotifier(
       maxRecordTime: widget.maxRecordTimeInSecond,
       startRecording: widget.startRecording ?? () {},
@@ -206,7 +208,13 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.addObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    soundRecordNotifier.didChangeAppLifecycleState(state);
   }
 
   @override
