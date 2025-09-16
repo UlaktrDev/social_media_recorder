@@ -286,6 +286,7 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
 
     return Listener(
       onPointerDown: (details) async {
+        state.vibrationPresetAlarm();
         final currentStatus = await state.currentStatusPermission();
         if (currentStatus != PermissionStatus.granted) {
           widget.microphoneRequestPermission?.call();

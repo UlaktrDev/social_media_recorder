@@ -6,6 +6,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:social_media_recorder/audio_encoder_type.dart';
+import 'package:vibration/vibration.dart';
+import 'package:vibration/vibration_presets.dart';
 // import 'package:uuid/uuid.dart';
 
 class SoundRecordNotifier extends ChangeNotifier {
@@ -380,6 +382,12 @@ class SoundRecordNotifier extends ChangeNotifier {
       if (result.isGranted) {
         _isAcceptedPermission = true;
       }
+    }
+  }
+
+  Future<void> vibrationPresetAlarm() async {
+    if (await Vibration.hasVibrator()) {
+      Vibration.vibrate(preset: VibrationPreset.singleShortBuzz);
     }
   }
 }
