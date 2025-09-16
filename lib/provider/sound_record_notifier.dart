@@ -308,12 +308,15 @@ class SoundRecordNotifier extends ChangeNotifier {
   }
 
   /// this function to start record voice
-  record(Function()? startRecord) async {
+  record({
+    Function()? startRecord,
+  }) async {
     if (!_isAcceptedPermission) {
       await Permission.microphone.request();
       await Permission.manageExternalStorage.request();
       await Permission.storage.request();
       _isAcceptedPermission = true;
+      record();
     } else {
       try {
         buttonPressed = true;

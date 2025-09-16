@@ -295,7 +295,9 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
         state.resetEdgePadding();
 
         soundRecordNotifier.isShow = true;
-        state.record(widget.startRecording);
+        state.record(
+          startRecord: widget.startRecording,
+        );
       },
       onPointerUp: (details) async {
         if (!state.isLocked) {
