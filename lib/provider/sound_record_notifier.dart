@@ -313,7 +313,7 @@ class SoundRecordNotifier extends ChangeNotifier {
       await Permission.manageExternalStorage.request();
       await Permission.storage.request();
       _isAcceptedPermission = true;
-      record();
+      record(startRecord: startRecord);
     } else {
       try {
         buttonPressed = true;
