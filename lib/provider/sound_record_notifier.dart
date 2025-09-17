@@ -310,57 +310,49 @@ class SoundRecordNotifier extends ChangeNotifier {
   }) async {
     isShow = true;
 
-    if (!_isAcceptedPermission) {
-      await Permission.microphone.request();
-      await Permission.manageExternalStorage.request();
-      await Permission.storage.request();
-      _isAcceptedPermission = true;
-      record(startRecord: startRecord);
-    } else {
-      try {
-        buttonPressed = true;
-        String recordFilePath = await getFilePath();
-        if (_timer != null) {
-          _timer?.cancel();
-        }
-
-        _recorderSubscription?.cancel();
-        _recorderSubscription =
-            Timer.periodic(const Duration(milliseconds: 100), (_) async {
-          try {
-            final amplitude = await recordMp3.getAmplitude();
-            var value = 100 + amplitude.current * 2;
-            value = value < 1 ? 1 : value;
-            _amplitudeTimeline.add(value);
-          } catch (e) {
-            debugPrint('Error getting amplitude: $e');
-            rethrow;
-          }
-        });
-        _timer = Timer(const Duration(milliseconds: 100), () async {
-          try {
-            await recordMp3.start(
-              recordConfig ?? const RecordConfig(),
-              path: recordFilePath,
-            );
-          } catch (e) {
-            debugPrint('Error starting recording: $e');
-            rethrow;
-          }
-        });
-
-        if (startRecord != null) {
-          startRecord();
-        }
-
-        _mapCounterGenerater();
-        notifyListeners();
-      } catch (e) {
-        debugPrint('Error starting recording: $e');
-        stopRecording!('');
+    try {
+      buttonPressed = true;
+      String recordFilePath = await getFilePath();
+      if (_timer != null) {
+        _timer?.cancel();
       }
+
+      _recorderSubscription?.cancel();
+      _recorderSubscription =
+          Timer.periodic(const Duration(milliseconds: 100), (_) async {
+        try {
+          final amplitude = await recordMp3.getAmplitude();
+          var value = 100 + amplitude.current * 2;
+          value = value < 1 ? 1 : value;
+          _amplitudeTimeline.add(value);
+        } catch (e) {
+          debugPrint('Error getting amplitude: $e');
+          rethrow;
+        }
+      });
+      _timer = Timer(const Duration(milliseconds: 100), () async {
+        try {
+          await recordMp3.start(
+            recordConfig ?? const RecordConfig(),
+            path: recordFilePath,
+          );
+        } catch (e) {
+          debugPrint('Error starting recording: $e');
+          rethrow;
+        }
+      });
+
+      if (startRecord != null) {
+        startRecord();
+      }
+
+      _mapCounterGenerater();
       notifyListeners();
+    } catch (e) {
+      debugPrint('Error starting recording: $e');
+      stopRecording!('');
     }
+    notifyListeners();
   }
 
   Future<PermissionStatus> currentStatusPermission() async {
@@ -371,6 +363,8 @@ class SoundRecordNotifier extends ChangeNotifier {
   /// to check permission
   voidInitialSound() async {
     // if (Platform.isIOS) _isAcceptedPermission = true;
+
+    if (_isAcceptedPermission) return;
 
     startRecord = false;
     final status = await Permission.microphone.status;
