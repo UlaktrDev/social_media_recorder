@@ -303,7 +303,6 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
         state.setNewInitialDraggableHeight(details.position.dy);
         state.resetEdgePadding();
 
-        soundRecordNotifier.isShow = true;
         state.record(
           startRecord: widget.startRecording,
         );
