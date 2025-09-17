@@ -6,6 +6,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:social_media_recorder/audio_encoder_type.dart';
+import 'package:vibration/vibration.dart';
+import 'package:vibration/vibration_presets.dart';
 // import 'package:uuid/uuid.dart';
 
 class SoundRecordNotifier extends ChangeNotifier {
@@ -13,6 +15,8 @@ class SoundRecordNotifier extends ChangeNotifier {
   int _localCounterForMaxRecordTime = 0;
   GlobalKey key = GlobalKey();
   int? maxRecordTime;
+  final List<double> _amplitudeTimeline = [];
+  Timer? _recorderSubscription;
 
   /// This Timer Just For wait about 1 second until starting record
   Timer? _timer;
@@ -69,12 +73,17 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   /// function called when start recording
   Function()? startRecording;
-  Function(File soundFile, String time) sendRequestFunction;
+  Function(File soundFile, Duration time, List<int> waveFrom)
+      sendRequestFunction;
 
   /// function called when stop recording, return the recording time (even if time < 1)
   Function(String time)? stopRecording;
 
   late AudioEncoderType encode;
+
+  late int waveCount;
+
+  late RecordConfig? recordConfig;
 
   // ignore: sort_constructors_first
 
@@ -82,6 +91,7 @@ class SoundRecordNotifier extends ChangeNotifier {
     required this.stopRecording,
     required this.sendRequestFunction,
     required this.startRecording,
+    required this.waveCount,
     this.edge = 0.0,
     this.minute = 0,
     this.second = 0,
@@ -93,9 +103,8 @@ class SoundRecordNotifier extends ChangeNotifier {
     this.lockScreenRecord = false,
     this.encode = AudioEncoderType.AAC,
     this.maxRecordTime,
-  }) {
-    record(() {});
-  }
+    this.recordConfig = const RecordConfig(),
+  });
 
   /// To increase counter after 1 sencond
   void _mapCounterGenerater() {
@@ -105,13 +114,24 @@ class SoundRecordNotifier extends ChangeNotifier {
     });
   }
 
-  finishRecording() {
+  Future<void> finishRecording() async {
+    await Future.delayed(const Duration(milliseconds: 400));
     if (buttonPressed) {
       if (second > 1 || minute > 0) {
         String path = mPath;
-        String _time = minute.toString() + ":" + second.toString();
-        sendRequestFunction(File.fromUri(Uri(path: path)), _time);
-        stopRecording!(_time);
+        Duration _time = Duration(minutes: minute, seconds: second);
+        final step = _amplitudeTimeline.length < waveCount
+            ? 1
+            : (_amplitudeTimeline.length / waveCount).round();
+        final waveform = <int>[];
+        for (var i = 0; i < _amplitudeTimeline.length; i += step) {
+          waveform.add((_amplitudeTimeline[i] / 100 * 1024).round());
+        }
+        sendRequestFunction(File.fromUri(Uri(path: path)), _time, waveform);
+        stopRecording!(minute.toString() + ":" + second.toString());
+        _recorderSubscription?.cancel();
+        resetEdgePadding();
+        return;
       }
     }
     resetEdgePadding();
@@ -136,15 +156,22 @@ class SoundRecordNotifier extends ChangeNotifier {
     lockScreenRecord = false;
     if (_timer != null) _timer!.cancel();
     if (_timerCounter != null) _timerCounter!.cancel();
-    final value = await recordMp3.isRecording();
+    try {
+      final value = await recordMp3.isRecording();
 
-    if (value == true) {
-      recordMp3.stop().then((x) {
-        recordMp3 = AudioRecorder();
-        notifyListeners();
-      });
-      notifyListeners();
+      if (value == true) {
+        recordMp3.stop().then((x) {
+          recordMp3 = AudioRecorder();
+        }).onError((error, stackTrace) {
+          debugPrint('Error stopping recording: $error');
+          stopRecording!('');
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking recording status: $e');
+      stopRecording!('');
     }
+
     notifyListeners();
   }
 
@@ -163,7 +190,8 @@ class SoundRecordNotifier extends ChangeNotifier {
   Future<String> getFilePath() async {
     String _sdPath = "";
     Directory tempDir = await getTemporaryDirectory();
-    _sdPath = initialStorePathRecord.isEmpty ? tempDir.path : initialStorePathRecord;
+    _sdPath =
+        initialStorePathRecord.isEmpty ? tempDir.path : initialStorePathRecord;
     var d = Directory(_sdPath);
     if (!d.existsSync()) {
       d.createSync(recursive: true);
@@ -173,7 +201,8 @@ class SoundRecordNotifier extends ChangeNotifier {
         "${_counter.toString()}${now.year.toString()}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}-${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
     // print("the current data is $convertedDateTime");
     _counter++;
-    String storagePath = _sdPath + "/" + convertedDateTime + _getSoundExtention();
+    String storagePath =
+        _sdPath + "/" + convertedDateTime + _getSoundExtention();
     mPath = storagePath;
     return storagePath;
   }
@@ -185,28 +214,32 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   double _initWidth = -33;
 
+  updateScrollVerticalValue(Offset currentValue) {
+    /// take the diffrent between the origin and the current
+    /// draggable to the top place
+    double hightValue = currentButtonHeihtPlace - currentValue.dy;
+
+    /// if reached to the max draggable value in the top
+    if (hightValue >= 50) {
+      isLocked = true;
+      lockScreenRecord = true;
+      hightValue = 50;
+      notifyListeners();
+    }
+    if (hightValue < 0) hightValue = 0;
+    heightPosition = hightValue;
+    lockScreenRecord = isLocked;
+    notifyListeners();
+  }
+
   /// used to change the draggable to top value
   /// or To The X vertical
   /// and update this value in screen
-  updateScrollValue(Offset currentValue, BuildContext context) async {
+  updateScrollHorizontalValue(Offset currentValue, BuildContext context) async {
     if (buttonPressed == true) {
       final x = currentValue;
 
-      /// take the diffrent between the origin and the current
-      /// draggable to the top place
-      double hightValue = currentButtonHeihtPlace - x.dy;
-
-      /// if reached to the max draggable value in the top
-      if (hightValue >= 50) {
-        isLocked = true;
-        lockScreenRecord = true;
-        hightValue = 50;
-        notifyListeners();
-      }
-      if (hightValue < 0) hightValue = 0;
-      heightPosition = hightValue;
-      lockScreenRecord = isLocked;
-      notifyListeners();
+      updateScrollVerticalValue(currentValue);
 
       /// this operation for update X oriantation
       /// draggable to the left or right place
@@ -215,7 +248,10 @@ class SoundRecordNotifier extends ChangeNotifier {
         Offset position = box.localToGlobal(Offset.zero);
         if (position.dx <= MediaQuery.of(context).size.width * 0.6) {
           String _time = minute.toString() + ":" + second.toString();
-          if (stopRecording != null) stopRecording!(_time);
+          if (stopRecording != null) {
+            stopRecording!(_time);
+            _recorderSubscription?.cancel();
+          }
           resetEdgePadding();
         } else if (x.dx >= MediaQuery.of(context).size.width) {
           edge = 0;
@@ -269,20 +305,41 @@ class SoundRecordNotifier extends ChangeNotifier {
   }
 
   /// this function to start record voice
-  record(Function()? startRecord) async {
-    if (!_isAcceptedPermission) {
-      await Permission.microphone.request();
-      await Permission.manageExternalStorage.request();
-      await Permission.storage.request();
-      _isAcceptedPermission = true;
-    } else {
+  record({
+    Function()? startRecord,
+  }) async {
+    isShow = true;
+
+    try {
       buttonPressed = true;
       String recordFilePath = await getFilePath();
       if (_timer != null) {
         _timer?.cancel();
       }
-      _timer = Timer(const Duration(milliseconds: 400), () {
-        recordMp3.start(const RecordConfig(), path: recordFilePath);
+
+      _recorderSubscription?.cancel();
+      _recorderSubscription =
+          Timer.periodic(const Duration(milliseconds: 100), (_) async {
+        try {
+          final amplitude = await recordMp3.getAmplitude();
+          var value = 100 + amplitude.current * 2;
+          value = value < 1 ? 1 : value;
+          _amplitudeTimeline.add(value);
+        } catch (e) {
+          debugPrint('Error getting amplitude: $e');
+          rethrow;
+        }
+      });
+      _timer = Timer(const Duration(milliseconds: 100), () async {
+        try {
+          await recordMp3.start(
+            recordConfig ?? const RecordConfig(),
+            path: recordFilePath,
+          );
+        } catch (e) {
+          debugPrint('Error starting recording: $e');
+          rethrow;
+        }
       });
 
       if (startRecord != null) {
@@ -291,13 +348,23 @@ class SoundRecordNotifier extends ChangeNotifier {
 
       _mapCounterGenerater();
       notifyListeners();
+    } catch (e) {
+      debugPrint('Error starting recording: $e');
+      stopRecording!('');
     }
     notifyListeners();
+  }
+
+  Future<PermissionStatus> currentStatusPermission() async {
+    final status = await Permission.microphone.status;
+    return status;
   }
 
   /// to check permission
   voidInitialSound() async {
     // if (Platform.isIOS) _isAcceptedPermission = true;
+
+    if (_isAcceptedPermission) return;
 
     startRecord = false;
     final status = await Permission.microphone.status;
@@ -307,5 +374,30 @@ class SoundRecordNotifier extends ChangeNotifier {
         _isAcceptedPermission = true;
       }
     }
+  }
+
+  Future<void> vibrationPresetAlarm() async {
+    if (await Vibration.hasVibrator()) {
+      Vibration.vibrate(preset: VibrationPreset.singleShortBuzz);
+    }
+  }
+
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden) {
+      stopRecording!('');
+      _recorderSubscription?.cancel();
+      resetEdgePadding();
+    }
+  }
+
+  @override
+  dispose() {
+    _recorderSubscription?.cancel();
+    _timer?.cancel();
+    _timerCounter?.cancel();
+    recordMp3.cancel();
+    super.dispose();
   }
 }

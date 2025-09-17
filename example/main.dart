@@ -45,13 +45,18 @@ class _MyHomePageState extends State<MyHomePage> {
             alignment: Alignment.centerRight,
             child: SocialMediaRecorder(
               // maxRecordTimeInSecond: 5,
+              autoRequestPermission: true,
+              recordIcon: const Icon(
+                Icons.keyboard_voice_outlined,
+                color: Colors.blue,
+              ),
               startRecording: () {
                 // function called when start recording
               },
               stopRecording: (_time) {
                 // function called when stop recording, return the recording time
               },
-              sendRequestFunction: (soundFile, _time) {
+              sendRequestFunction: (soundFile, _time, waveFrom) {
                 //  print("the current path is ${soundFile.path}");
               },
               encode: AudioEncoderType.AAC,

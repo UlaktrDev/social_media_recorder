@@ -18,6 +18,13 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
   final Color? counterBackGroundColor;
   final Color? cancelTextBackGroundColor;
   final Widget? sendButtonIcon;
+  final Decoration? soundRecorderWhenLockedDecoration;
+  final double? soundRecorderWhenLockedWidth;
+  final double? counterWidth;
+  final EdgeInsetsGeometry? soundRecorderWhenLockedMargin;
+  final Widget? micCounterWidget;
+  final EdgeInsetsGeometry? counterPadding;
+
   // ignore: sort_constructors_first
   const SoundRecorderWhenLockedDesign({
     Key? key,
@@ -33,19 +40,27 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
     required this.recordIconWhenLockBackGroundColor,
     required this.counterBackGroundColor,
     required this.cancelTextBackGroundColor,
+    this.soundRecorderWhenLockedDecoration,
+    this.soundRecorderWhenLockedWidth,
+    this.soundRecorderWhenLockedMargin,
+    this.counterWidth,
+    this.micCounterWidget,
+    this.counterPadding,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width,
-      decoration: BoxDecoration(
-        color: cancelTextBackGroundColor ?? Colors.grey.shade100,
-        borderRadius: const BorderRadius.only(
-          bottomRight: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
+      width: soundRecorderWhenLockedWidth ?? MediaQuery.of(context).size.width,
+      decoration: soundRecorderWhenLockedDecoration ??
+          BoxDecoration(
+            color: cancelTextBackGroundColor ?? Colors.grey.shade100,
+            borderRadius: const BorderRadius.only(
+              bottomRight: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+      margin: soundRecorderWhenLockedMargin,
       child: InkWell(
         onTap: () {
           soundRecordNotifier.isShow = false;
@@ -76,7 +91,7 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                             Icon(
                               Icons.send,
                               textDirection: TextDirection.ltr,
-                              size: 28,
+                              size: 20,
                               color: (soundRecordNotifier.buttonPressed)
                                   ? Colors.grey.shade200
                                   : Colors.black,
@@ -115,7 +130,11 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
               soundRecorderState: soundRecordNotifier,
               counterTextStyle: counterTextStyle,
               counterBackGroundColor: counterBackGroundColor,
-              fullRecordPackageHeight: fullRecordPackageHeight,
+              counterHeight: fullRecordPackageHeight,
+              counterWidth: counterWidth,
+              borderPadding: soundRecorderWhenLockedMargin,
+              micCounterWidget: micCounterWidget,
+              counterPadding: counterPadding,
             ),
           ],
         ),

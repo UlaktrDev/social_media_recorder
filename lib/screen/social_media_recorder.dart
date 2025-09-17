@@ -2,7 +2,9 @@ library social_media_recorder;
 
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:record/record.dart';
 import 'package:social_media_recorder/provider/sound_record_notifier.dart';
 import 'package:social_media_recorder/widgets/lock_record.dart';
 import 'package:social_media_recorder/widgets/show_counter.dart';
@@ -16,7 +18,8 @@ class SocialMediaRecorder extends StatefulWidget {
   final Color? cancelTextBackGroundColor;
 
   /// function return the recording sound file and the time
-  final Function(File soundFile, String time) sendRequestFunction;
+  final Function(File soundFile, Duration time, List<int> waveForm)
+      sendRequestFunction;
 
   /// function called when start recording
   final Function()? startRecording;
@@ -25,7 +28,7 @@ class SocialMediaRecorder extends StatefulWidget {
   final Function(String time)? stopRecording;
 
   /// recording Icon That pressesd to start record
-  final Widget? recordIcon;
+  final Widget recordIcon;
 
   /// recording Icon when user locked the record
   final Widget? recordIconWhenLockedRecord;
@@ -82,17 +85,62 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final double initRecordPackageWidth;
 
+  final double? fullRecordPackageWidth;
+
+  final Decoration? soundRecorderWhenLockedDecoration;
+
+  final double? soundRecorderWhenLockedWidth;
+
+  final EdgeInsetsGeometry? soundRecorderWhenLockedMargin;
+
+  final double? counterWidth;
+
+  final EdgeInsetsGeometry? borderPadding;
+
+  final Widget? micCounterWidget;
+
+  final double? heightLockRecord;
+
+  final Duration durationLockRecordAnimatedPadding;
+
+  final Duration animatedOpacityLockRecord;
+
+  final Color? backGroundColorLockRecord;
+
+  final Widget? lockedIconLockRecord;
+
+  final Widget? unLockedIconLockRecord;
+
+  final BorderRadiusGeometry? borderRadiusLockRecord;
+
+  final EdgeInsetsGeometry? counterPadding;
+
+  final Function()? microphoneRequestPermission;
+
+  final bool autoRequestPermission;
+
+  final EdgeInsetsGeometry? slideToCancelPadding;
+
+  final int waveCount;
+
+  final RecordConfig? recordConfig;
+
+  final Decoration? decoration;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
+    this.microphoneRequestPermission,
     this.sendButtonIcon,
+    this.waveCount = 40,
     this.initRecordPackageWidth = 40,
     this.fullRecordPackageHeight = 50,
+    this.fullRecordPackageWidth,
     this.maxRecordTimeInSecond,
     this.storeSoundRecoringPath = "",
     required this.sendRequestFunction,
     this.startRecording,
     this.stopRecording,
-    this.recordIcon,
+    required this.recordIcon,
     this.lockButton,
     this.counterBackGroundColor,
     this.recordIconWhenLockedRecord,
@@ -107,6 +155,24 @@ class SocialMediaRecorder extends StatefulWidget {
     this.encode = AudioEncoderType.AAC,
     this.cancelTextBackGroundColor,
     this.radius,
+    this.soundRecorderWhenLockedDecoration,
+    this.soundRecorderWhenLockedWidth,
+    this.counterWidth,
+    this.borderPadding,
+    this.micCounterWidget,
+    this.durationLockRecordAnimatedPadding = const Duration(seconds: 1),
+    this.animatedOpacityLockRecord = const Duration(milliseconds: 500),
+    this.backGroundColorLockRecord,
+    this.lockedIconLockRecord,
+    this.unLockedIconLockRecord,
+    this.borderRadiusLockRecord,
+    this.heightLockRecord,
+    this.counterPadding,
+    this.soundRecorderWhenLockedMargin,
+    this.autoRequestPermission = false,
+    this.slideToCancelPadding,
+    this.recordConfig,
+    this.decoration,
     Key? key,
   }) : super(key: key);
 
@@ -114,28 +180,41 @@ class SocialMediaRecorder extends StatefulWidget {
   _SocialMediaRecorder createState() => _SocialMediaRecorder();
 }
 
-class _SocialMediaRecorder extends State<SocialMediaRecorder> {
+class _SocialMediaRecorder extends State<SocialMediaRecorder>
+    with WidgetsBindingObserver {
   late SoundRecordNotifier soundRecordNotifier;
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     soundRecordNotifier = SoundRecordNotifier(
       maxRecordTime: widget.maxRecordTimeInSecond,
       startRecording: widget.startRecording ?? () {},
       stopRecording: widget.stopRecording ?? (String x) {},
       sendRequestFunction: widget.sendRequestFunction,
+      waveCount: widget.waveCount,
+      recordConfig: widget.recordConfig,
     );
 
     soundRecordNotifier.initialStorePathRecord =
         widget.storeSoundRecoringPath ?? "";
     soundRecordNotifier.isShow = false;
-    soundRecordNotifier.voidInitialSound();
+    if (widget.autoRequestPermission) {
+      soundRecordNotifier.voidInitialSound();
+    }
+
     super.initState();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.addObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    soundRecordNotifier.didChangeAppLifecycleState(state);
   }
 
   @override
@@ -151,32 +230,37 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
         child: Consumer<SoundRecordNotifier>(
           builder: (context, value, _) {
             return Directionality(
-                textDirection: TextDirection.rtl, child: makeBody(value));
+              textDirection: TextDirection.rtl,
+              child: makeBody(value),
+            );
           },
         ));
   }
 
   Widget makeBody(SoundRecordNotifier state) {
-    return Column(
-      children: [
-        GestureDetector(
-          onHorizontalDragUpdate: (scrollEnd) {
-            state.updateScrollValue(scrollEnd.globalPosition, context);
-          },
-          onHorizontalDragEnd: (x) {
-            if (state.buttonPressed && !state.isLocked) state.finishRecording();
-          },
-          child: Container(
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
-              ),
-            ),
+    return SizedBox(
+      height: widget.fullRecordPackageHeight,
+      child: Row(
+        children: [
+          GestureDetector(
+            onVerticalDragUpdate: (scrollUpdate) {
+              state.updateScrollVerticalValue(scrollUpdate.globalPosition);
+            },
+            onHorizontalDragUpdate: (scrollEnd) {
+              state.updateScrollHorizontalValue(
+                scrollEnd.globalPosition,
+                context,
+              );
+            },
+            onHorizontalDragEnd: (x) {
+              if (state.buttonPressed && !state.isLocked) {
+                state.finishRecording();
+              }
+            },
             child: recordVoice(state),
-          ),
-        )
-      ],
+          )
+        ],
+      ),
     );
   }
 
@@ -184,6 +268,7 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
     if (state.lockScreenRecord == true) {
       return SoundRecorderWhenLockedDesign(
         cancelText: widget.cancelText,
+
         fullRecordPackageHeight: widget.fullRecordPackageHeight,
         // cancelRecordFunction: widget.cacnelRecording ?? () {},
         sendButtonIcon: widget.sendButtonIcon,
@@ -197,16 +282,30 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
         sendRequestFunction: widget.sendRequestFunction,
         soundRecordNotifier: state,
         stopRecording: widget.stopRecording,
+        soundRecorderWhenLockedWidth: widget.soundRecorderWhenLockedWidth,
+        soundRecorderWhenLockedDecoration:
+            widget.soundRecorderWhenLockedDecoration,
+        soundRecorderWhenLockedMargin: widget.soundRecorderWhenLockedMargin,
+        counterWidth: widget.counterWidth,
+        micCounterWidget: widget.micCounterWidget,
+        counterPadding: widget.counterPadding,
       );
     }
 
     return Listener(
       onPointerDown: (details) async {
+        state.vibrationPresetAlarm();
+        final currentStatus = await state.currentStatusPermission();
+        if (currentStatus != PermissionStatus.granted) {
+          widget.microphoneRequestPermission?.call();
+          return;
+        }
         state.setNewInitialDraggableHeight(details.position.dy);
         state.resetEdgePadding();
 
-        soundRecordNotifier.isShow = true;
-        state.record(widget.startRecording);
+        state.record(
+          startRecord: widget.startRecording,
+        );
       },
       onPointerUp: (details) async {
         if (!state.isLocked) {
@@ -217,7 +316,8 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
         duration: Duration(milliseconds: soundRecordNotifier.isShow ? 0 : 300),
         height: widget.fullRecordPackageHeight,
         width: (soundRecordNotifier.isShow)
-            ? MediaQuery.of(context).size.width
+            ? widget.soundRecorderWhenLockedWidth ??
+                MediaQuery.of(context).size.width
             : widget.initRecordPackageWidth,
         child: Stack(
           children: [
@@ -225,14 +325,17 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
               child: Padding(
                 padding: EdgeInsets.only(right: state.edge),
                 child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: soundRecordNotifier.isShow
-                        ? BorderRadius.circular(12)
-                        : widget.radius != null && !soundRecordNotifier.isShow
-                            ? widget.radius
-                            : BorderRadius.circular(0),
-                    color: widget.backGroundColor ?? Colors.grey.shade100,
-                  ),
+                  decoration: soundRecordNotifier.isShow
+                      ? widget.decoration
+                      : BoxDecoration(
+                          borderRadius: soundRecordNotifier.isShow
+                              ? BorderRadius.circular(12)
+                              : widget.radius != null &&
+                                      !soundRecordNotifier.isShow
+                                  ? widget.radius
+                                  : BorderRadius.circular(0),
+                          color: widget.backGroundColor ?? Colors.transparent,
+                        ),
                   child: Stack(
                     children: [
                       Center(
@@ -247,16 +350,19 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
                           soundRecorderState: state,
                           slideToCancelTextStyle: widget.slideToCancelTextStyle,
                           slideToCancelText: widget.slideToCancelText,
+                          slideToCancelPadding: widget.slideToCancelPadding,
                         ),
                       ),
                       if (soundRecordNotifier.isShow)
-                        Center(
-                          child: ShowCounter(
-                              counterBackGroundColor:
-                                  widget.counterBackGroundColor,
-                              soundRecorderState: state,
-                              fullRecordPackageHeight:
-                                  widget.fullRecordPackageHeight),
+                        ShowCounter(
+                          counterBackGroundColor: widget.counterBackGroundColor,
+                          soundRecorderState: state,
+                          counterHeight: widget.fullRecordPackageHeight,
+                          counterTextStyle: widget.counterTextStyle,
+                          counterWidth: widget.counterWidth,
+                          borderPadding: widget.borderPadding,
+                          micCounterWidget: widget.micCounterWidget,
+                          counterPadding: widget.counterPadding,
                         ),
                     ],
                   ),
@@ -264,10 +370,17 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder> {
               ),
             ),
             SizedBox(
-              width: 60,
+              width: widget.heightLockRecord ?? 60,
               child: LockRecord(
                 soundRecorderState: state,
                 lockIcon: widget.lockButton,
+                backGroundColorLockRecord: widget.backGroundColorLockRecord,
+                durationLockRecordAnimatedPadding:
+                    widget.durationLockRecordAnimatedPadding,
+                animatedOpacityLockRecord: widget.animatedOpacityLockRecord,
+                borderRadiusLockRecord: widget.borderRadiusLockRecord,
+                lockedIconLockRecord: widget.lockedIconLockRecord,
+                unLockedIconLockRecord: widget.unLockedIconLockRecord,
               ),
             )
           ],
