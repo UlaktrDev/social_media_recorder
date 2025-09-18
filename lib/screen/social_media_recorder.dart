@@ -208,7 +208,8 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
 
   @override
   void dispose() {
-    WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
+    soundRecordNotifier.dispose();
     super.dispose();
   }
 
