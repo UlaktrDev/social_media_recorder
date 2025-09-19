@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:social_media_recorder/audio_encoder_type.dart';
+import 'package:social_media_recorder/provider/sound_record_notifier.dart';
 import 'package:social_media_recorder/screen/social_media_recorder.dart';
 
 void main() {
@@ -46,6 +47,12 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Align(
             alignment: Alignment.centerRight,
             child: SocialMediaRecorder(
+              soundRecordNotifier: SoundRecordNotifier(
+                startRecording: () {},
+                stopRecording: (_) {},
+                sendRequestFunction: (soundFile, time, waveForm) {},
+                waveCount: 40,
+              ),
               autoRequestPermission: true,
               // maxRecordTimeInSecond: 5,
               microphoneRequestPermission: () async {
@@ -58,7 +65,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 Icons.keyboard_voice_outlined,
                 color: Colors.blue,
               ),
-              soundRecorderWhenLockedWidth: 350,
+              soundRecorderWhenLockedWidth:
+                  MediaQuery.of(context).size.width - 32,
               startRecording: () {
                 // function called when start recording
               },

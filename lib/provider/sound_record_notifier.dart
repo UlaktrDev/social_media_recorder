@@ -1,3 +1,5 @@
+library social_media_recorder;
+
 import 'dart:async';
 import 'dart:io';
 

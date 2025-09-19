@@ -75,11 +75,6 @@ class SocialMediaRecorder extends StatefulWidget {
   // use it to change send button when user lock the record
   final Widget? sendButtonIcon;
 
-  // this function called when cancel record function
-
-  // use to set max record time in second
-  final int? maxRecordTimeInSecond;
-
   // use to change full package Height
   final double fullRecordPackageHeight;
 
@@ -121,21 +116,19 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final EdgeInsetsGeometry? slideToCancelPadding;
 
-  final int waveCount;
-
   final RecordConfig? recordConfig;
 
   final Decoration? decoration;
+
+  final SoundRecordNotifier soundRecordNotifier;
 
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.microphoneRequestPermission,
     this.sendButtonIcon,
-    this.waveCount = 40,
     this.initRecordPackageWidth = 40,
     this.fullRecordPackageHeight = 50,
     this.fullRecordPackageWidth,
-    this.maxRecordTimeInSecond,
     this.storeSoundRecoringPath = "",
     required this.sendRequestFunction,
     this.startRecording,
@@ -173,6 +166,7 @@ class SocialMediaRecorder extends StatefulWidget {
     this.slideToCancelPadding,
     this.recordConfig,
     this.decoration,
+    required this.soundRecordNotifier,
     Key? key,
   }) : super(key: key);
 
@@ -182,25 +176,14 @@ class SocialMediaRecorder extends StatefulWidget {
 
 class _SocialMediaRecorder extends State<SocialMediaRecorder>
     with WidgetsBindingObserver {
-  late SoundRecordNotifier soundRecordNotifier;
-
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    soundRecordNotifier = SoundRecordNotifier(
-      maxRecordTime: widget.maxRecordTimeInSecond,
-      startRecording: widget.startRecording ?? () {},
-      stopRecording: widget.stopRecording ?? (String x) {},
-      sendRequestFunction: widget.sendRequestFunction,
-      waveCount: widget.waveCount,
-      recordConfig: widget.recordConfig,
-    );
-
-    soundRecordNotifier.initialStorePathRecord =
+    widget.soundRecordNotifier.initialStorePathRecord =
         widget.storeSoundRecoringPath ?? "";
-    soundRecordNotifier.isShow = false;
+    widget.soundRecordNotifier.isShow = false;
     if (widget.autoRequestPermission) {
-      soundRecordNotifier.voidInitialSound();
+      widget.soundRecordNotifier.voidInitialSound();
     }
 
     super.initState();
@@ -209,24 +192,20 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    soundRecordNotifier.dispose();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    soundRecordNotifier.didChangeAppLifecycleState(state);
+    widget.soundRecordNotifier.didChangeAppLifecycleState(state);
   }
 
   @override
   Widget build(BuildContext context) {
-    soundRecordNotifier.maxRecordTime = widget.maxRecordTimeInSecond;
-    soundRecordNotifier.startRecording = widget.startRecording ?? () {};
-    soundRecordNotifier.stopRecording = widget.stopRecording ?? (String x) {};
-    soundRecordNotifier.sendRequestFunction = widget.sendRequestFunction;
     return MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (context) => soundRecordNotifier),
+          ChangeNotifierProvider(
+              create: (context) => widget.soundRecordNotifier),
         ],
         child: Consumer<SoundRecordNotifier>(
           builder: (context, value, _) {
@@ -280,7 +259,6 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
             widget.recordIconWhenLockBackGroundColor ?? Colors.blue,
         counterTextStyle: widget.counterTextStyle,
         recordIconWhenLockedRecord: widget.recordIconWhenLockedRecord,
-        sendRequestFunction: widget.sendRequestFunction,
         soundRecordNotifier: state,
         stopRecording: widget.stopRecording,
         soundRecorderWhenLockedWidth: widget.soundRecorderWhenLockedWidth,
@@ -314,9 +292,10 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
         }
       },
       child: AnimatedContainer(
-        duration: Duration(milliseconds: soundRecordNotifier.isShow ? 0 : 300),
+        duration:
+            Duration(milliseconds: widget.soundRecordNotifier.isShow ? 0 : 300),
         height: widget.fullRecordPackageHeight,
-        width: (soundRecordNotifier.isShow)
+        width: (widget.soundRecordNotifier.isShow)
             ? widget.soundRecorderWhenLockedWidth ??
                 MediaQuery.of(context).size.width
             : widget.initRecordPackageWidth,
@@ -326,13 +305,13 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
               child: Padding(
                 padding: EdgeInsets.only(right: state.edge),
                 child: Container(
-                  decoration: soundRecordNotifier.isShow
+                  decoration: widget.soundRecordNotifier.isShow
                       ? widget.decoration
                       : BoxDecoration(
-                          borderRadius: soundRecordNotifier.isShow
+                          borderRadius: widget.soundRecordNotifier.isShow
                               ? BorderRadius.circular(12)
                               : widget.radius != null &&
-                                      !soundRecordNotifier.isShow
+                                      !widget.soundRecordNotifier.isShow
                                   ? widget.radius
                                   : BorderRadius.circular(0),
                           color: widget.backGroundColor ?? Colors.transparent,
@@ -347,14 +326,14 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
                           fullRecordPackageHeight:
                               widget.fullRecordPackageHeight,
                           recordIcon: widget.recordIcon,
-                          shouldShowText: soundRecordNotifier.isShow,
+                          shouldShowText: widget.soundRecordNotifier.isShow,
                           soundRecorderState: state,
                           slideToCancelTextStyle: widget.slideToCancelTextStyle,
                           slideToCancelText: widget.slideToCancelText,
                           slideToCancelPadding: widget.slideToCancelPadding,
                         ),
                       ),
-                      if (soundRecordNotifier.isShow)
+                      if (widget.soundRecordNotifier.isShow)
                         ShowCounter(
                           counterBackGroundColor: widget.counterBackGroundColor,
                           soundRecorderState: state,

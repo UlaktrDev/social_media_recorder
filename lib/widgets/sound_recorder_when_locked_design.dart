@@ -9,7 +9,6 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
   final double fullRecordPackageHeight;
   final SoundRecordNotifier soundRecordNotifier;
   final String? cancelText;
-  final Function sendRequestFunction;
   final Function(String time)? stopRecording;
   final Widget? recordIconWhenLockedRecord;
   final TextStyle? cancelTextStyle;
@@ -32,7 +31,6 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
     required this.sendButtonIcon,
     required this.soundRecordNotifier,
     required this.cancelText,
-    required this.sendRequestFunction,
     this.stopRecording,
     required this.recordIconWhenLockedRecord,
     required this.cancelTextStyle,
