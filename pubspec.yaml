@@ -11,7 +11,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: any
-  permission_handler: ^11.0.0
+  permission_handler: ^12.0.1
   animated_text_kit: ^4.2.2
   path_provider: ^2.1.1
   provider: ^6.1.1
@@ -24,10 +24,8 @@ dev_dependencies:
 
   flutter_lints: ^1.0.0
 
-
 # The following section is specific to Flutter.
 flutter:
-
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
@@ -35,4 +33,3 @@ flutter:
     - assets/images/
     - assets/
   #   - images/a_dot_ham.jpeg
-
