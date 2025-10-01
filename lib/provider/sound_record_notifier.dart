@@ -165,7 +165,14 @@ class SoundRecordNotifier extends ChangeNotifier {
         }
         String path = mPath;
         Duration _time = Duration(minutes: minute, seconds: second);
-        sendRequestFunction(File.fromUri(Uri(path: path)), _time, previewWaveform);
+        final step = _amplitudeTimeline.length < waveCount
+            ? 1
+            : (_amplitudeTimeline.length / waveCount).round();
+        final waveform = <int>[];
+        for (var i = 0; i < _amplitudeTimeline.length; i += step) {
+          waveform.add((_amplitudeTimeline[i] / 100 * 1024).round());
+        }
+        sendRequestFunction(File.fromUri(Uri(path: path)), _time, waveform);
         stopRecording!(minute.toString() + ":" + second.toString());
         _recorderSubscription?.cancel();
         resetEdgePadding();
