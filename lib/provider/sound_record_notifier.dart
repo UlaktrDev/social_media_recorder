@@ -154,6 +154,9 @@ class SoundRecordNotifier extends ChangeNotifier {
     await Future.delayed(const Duration(milliseconds: 400));
     if (buttonPressed) {
       if (second > 1 || minute > 0) {
+        if (await recordMp3.isPaused()) {
+          await recordMp3.resume();
+        }
         String path = mPath;
         Duration _time = Duration(minutes: minute, seconds: second);
         sendRequestFunction(File.fromUri(Uri(path: path)), _time, _waveform);
@@ -239,6 +242,7 @@ class SoundRecordNotifier extends ChangeNotifier {
     _counter++;
     String storagePath =
         _sdPath + "/" + convertedDateTime + _getSoundExtention();
+    mPath = storagePath;
     return storagePath;
   }
 
@@ -354,7 +358,7 @@ class SoundRecordNotifier extends ChangeNotifier {
     try {
       buttonPressed = true;
       status = SoundRecordStatusEnum.recording;
-      mPath = await getFilePath();
+      String recordFilePath = await getFilePath();
       if (_timer != null) {
         _timer?.cancel();
       }
@@ -382,7 +386,7 @@ class SoundRecordNotifier extends ChangeNotifier {
         try {
           await recordMp3.start(
             recordConfig ?? const RecordConfig(),
-            path: mPath,
+            path: recordFilePath,
           );
         } catch (e) {
           debugPrint('Error starting recording: $e');
