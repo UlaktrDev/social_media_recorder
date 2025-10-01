@@ -27,6 +27,8 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
   final EdgeInsetsGeometry? counterPadding;
   final Widget? pauseWidget;
   final Widget? deleteWidget;
+  final double? pauseBottomPositioned;
+  final double? pauseRightPositioned;
 
   // ignore: sort_constructors_first
   const SoundRecorderWhenLockedDesign({
@@ -51,6 +53,8 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
     this.counterPadding,
     this.pauseWidget,
     this.deleteWidget,
+    this.pauseBottomPositioned,
+    this.pauseRightPositioned,
   }) : super(key: key);
 
   @override
@@ -62,31 +66,65 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
         if (soundRecordNotifier.status == SoundRecordStatusEnum.paused) ...[
           Row(
             children: [
-              InkWell(
-                hoverColor: Colors.transparent,
-                splashColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                focusColor: Colors.transparent,
-                onTap: () async {
-                  soundRecordNotifier.isShow = false;
-                  soundRecordNotifier.finishRecording();
+              OverlayPortal(
+                controller: soundRecordNotifier.resumeOverlayPortalController,
+                overlayChildBuilder: (BuildContext context) {
+                  return Positioned(
+                    bottom: pauseBottomPositioned ?? 0,
+                    right: pauseRightPositioned ?? 8,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onTapDown: (_) async {
+                        await soundRecordNotifier.handlePauseOrResumeAudio(
+                          context: context,
+                        );
+                      },
+                      child: pauseWidget ??
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(32),
+                            ),
+                            child: Icon(
+                              soundRecordNotifier.status ==
+                                  SoundRecordStatusEnum.paused
+                                  ? Icons.mic_outlined
+                                  : Icons.pause,
+                              size: 20,
+                              color: Colors.black,
+                            ),
+                          ),
+                    ),
+                  );
                 },
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(600),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 500),
-                    curve: Curves.easeIn,
-                    width: fullRecordPackageHeight,
-                    height: fullRecordPackageHeight,
-                    child: Container(
-                      color: recordIconWhenLockBackGroundColor,
-                      child: Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: Icon(
-                          Icons.send,
-                          textDirection: TextDirection.ltr,
-                          size: 20,
-                          color: Colors.grey.shade200,
+                child: InkWell(
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  onTap: () async {
+                    soundRecordNotifier.isShow = false;
+                    soundRecordNotifier.finishRecording();
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(600),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeIn,
+                      width: fullRecordPackageHeight,
+                      height: fullRecordPackageHeight,
+                      child: Container(
+                        color: recordIconWhenLockBackGroundColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Icon(
+                            Icons.send,
+                            textDirection: TextDirection.ltr,
+                            size: 20,
+                            color: Colors.grey.shade200,
+                          ),
                         ),
                       ),
                     ),
@@ -201,36 +239,6 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
             ],
           ),
         ] else ...[
-          Padding(
-            padding: const EdgeInsets.only(
-              bottom: 24,
-              right: 8,
-            ),
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTapDown: (_) async {
-                await soundRecordNotifier.handlePauseOrResumeAudio(
-                  context: context,
-                );
-              },
-              child: pauseWidget ??
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(32),
-                    ),
-                    child: Icon(
-                      soundRecordNotifier.status == SoundRecordStatusEnum.paused
-                          ? Icons.mic_outlined
-                          : Icons.pause,
-                      size: 20,
-                      color: Colors.black,
-                    ),
-                  ),
-            ),
-          ),
           Container(
             width: soundRecorderWhenLockedWidth ??
                 MediaQuery.of(context).size.width,
@@ -260,38 +268,72 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  InkWell(
-                    onTap: () async {
-                      soundRecordNotifier.isShow = false;
-                      soundRecordNotifier.finishRecording();
+                  OverlayPortal(
+                    controller: soundRecordNotifier.pauseOverlayPortalController,
+                    overlayChildBuilder: (BuildContext context) {
+                      return Positioned(
+                        bottom: pauseBottomPositioned ?? 0,
+                        right: pauseRightPositioned ?? 8,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.translucent,
+                          onTapDown: (_) async {
+                            await soundRecordNotifier.handlePauseOrResumeAudio(
+                              context: context,
+                            );
+                          },
+                          child: pauseWidget ??
+                              Container(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(32),
+                                ),
+                                child: Icon(
+                                  soundRecordNotifier.status ==
+                                          SoundRecordStatusEnum.paused
+                                      ? Icons.mic_outlined
+                                      : Icons.pause,
+                                  size: 20,
+                                  color: Colors.black,
+                                ),
+                              ),
+                        ),
+                      );
                     },
-                    hoverColor: Colors.transparent,
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    focusColor: Colors.transparent,
-                    child: Transform.scale(
-                      scale: 1.2,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(600),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeIn,
-                          width: fullRecordPackageHeight,
-                          height: fullRecordPackageHeight,
-                          child: Container(
-                            color: recordIconWhenLockBackGroundColor,
-                            child: Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: recordIconWhenLockedRecord ??
-                                  sendButtonIcon ??
-                                  Icon(
-                                    Icons.send,
-                                    textDirection: TextDirection.ltr,
-                                    size: 20,
-                                    color: (soundRecordNotifier.buttonPressed)
-                                        ? Colors.grey.shade200
-                                        : Colors.black,
-                                  ),
+                    child: InkWell(
+                      onTap: () async {
+                        soundRecordNotifier.isShow = false;
+                        soundRecordNotifier.finishRecording();
+                      },
+                      hoverColor: Colors.transparent,
+                      splashColor: Colors.transparent,
+                      highlightColor: Colors.transparent,
+                      focusColor: Colors.transparent,
+                      child: Transform.scale(
+                        scale: 1.2,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(600),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.easeIn,
+                            width: fullRecordPackageHeight,
+                            height: fullRecordPackageHeight,
+                            child: Container(
+                              color: recordIconWhenLockBackGroundColor,
+                              child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: recordIconWhenLockedRecord ??
+                                    sendButtonIcon ??
+                                    Icon(
+                                      Icons.send,
+                                      textDirection: TextDirection.ltr,
+                                      size: 20,
+                                      color: (soundRecordNotifier.buttonPressed)
+                                          ? Colors.grey.shade200
+                                          : Colors.black,
+                                    ),
+                              ),
                             ),
                           ),
                         ),

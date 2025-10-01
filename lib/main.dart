@@ -43,56 +43,64 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.only(top: 140, left: 4, right: 20),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: SocialMediaRecorder(
-              autoRequestPermission: true,
-              // maxRecordTimeInSecond: 5,
-              microphoneRequestPermission: () async {
-                // function called when you need to request the permission
-                await Permission.microphone.request();
-                await Permission.manageExternalStorage.request();
-                await Permission.storage.request();
-              },
-              recordIcon: const Icon(
-                Icons.keyboard_voice_outlined,
-                color: Colors.blue,
-              ),
-              soundRecorderWhenLockedWidth:
-                  MediaQuery.sizeOf(context).width - 24,
-              radius: BorderRadius.circular(24),
-              soundRecorderWhenLockedDecoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(32),
-                color: Colors.white,
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                  width: 1,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: SocialMediaRecorder(
+                  autoRequestPermission: true,
+                  // maxRecordTimeInSecond: 5,
+                  microphoneRequestPermission: () async {
+                    // function called when you need to request the permission
+                    await Permission.microphone.request();
+                    await Permission.manageExternalStorage.request();
+                    await Permission.storage.request();
+                  },
+                  recordIcon: const Icon(
+                    Icons.keyboard_voice_outlined,
+                    color: Colors.blue,
+                  ),
+                  soundRecorderWhenLockedWidth:
+                      MediaQuery.sizeOf(context).width - 24,
+                  radius: BorderRadius.circular(24),
+                  soundRecorderWhenLockedDecoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    color: Colors.white,
+                    border: Border.all(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    color: Colors.white,
+                    border: Border.all(
+                      color: Colors.grey.shade300,
+                      width: 1,
+                    ),
+                  ),
+                  startRecording: () {
+                    // function called when start recording
+                    debugPrint("start recording");
+                  },
+                  stopRecording: (_time) {
+                    // function called when stop recording, return the recording time
+                    debugPrint("stop recording at $_time seconds");
+                  },
+                  sendRequestFunction: (soundFile, _time, waveFrom) {
+                    debugPrint(
+                      "the current path is ${soundFile.path} and the time is $_time seconds and waveFrom is $waveFrom",
+                    );
+                  },
+                  pauseRightPositioned: 32,
+                  pauseBottomPositioned:
+                      MediaQuery.sizeOf(context).height / 2 - 32,
+                  encode: AudioEncoderType.AAC,
+                  // storeSoundRecoringPath: "/storage/emulated/0/new_record_sound",
                 ),
               ),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(32),
-                color: Colors.white,
-                border: Border.all(
-                  color: Colors.grey.shade300,
-                  width: 1,
-                ),
-              ),
-              startRecording: () {
-                // function called when start recording
-                debugPrint("start recording");
-              },
-              stopRecording: (_time) {
-                // function called when stop recording, return the recording time
-                debugPrint("stop recording at $_time seconds");
-              },
-              sendRequestFunction: (soundFile, _time, waveFrom) {
-                debugPrint(
-                  "the current path is ${soundFile.path} and the time is $_time seconds and waveFrom is $waveFrom",
-                );
-              },
-              encode: AudioEncoderType.AAC,
-              // storeSoundRecoringPath: "/storage/emulated/0/new_record_sound",
-            ),
+            ],
           ),
         ),
       ),

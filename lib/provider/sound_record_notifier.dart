@@ -28,6 +28,12 @@ class SoundRecordNotifier extends ChangeNotifier {
   final List<double> _calculatedWaveform = [];
   Timer? _recorderSubscription;
 
+  final OverlayPortalController pauseOverlayPortalController =
+      OverlayPortalController();
+
+  final OverlayPortalController resumeOverlayPortalController =
+      OverlayPortalController();
+
   SoundRecordStatusEnum status = SoundRecordStatusEnum.initial;
 
   /// This Timer Just For wait about 1 second until starting record
@@ -253,11 +259,14 @@ class SoundRecordNotifier extends ChangeNotifier {
       isLocked = true;
       lockScreenRecord = true;
       hightValue = 50;
-      notifyListeners();
     }
     if (hightValue < 0) hightValue = 0;
     heightPosition = hightValue;
     lockScreenRecord = isLocked;
+
+    if (lockScreenRecord) {
+      pauseOverlayPortalController.show();
+    }
     notifyListeners();
   }
 
@@ -473,6 +482,10 @@ class SoundRecordNotifier extends ChangeNotifier {
     try {
       recordMp3.pause();
 
+      resumeOverlayPortalController.show();
+
+      pauseOverlayPortalController.hide();
+
       status = SoundRecordStatusEnum.paused;
     } catch (e) {
       debugPrint('Error pausing recording: $e');
@@ -485,7 +498,8 @@ class SoundRecordNotifier extends ChangeNotifier {
     try {
       if (mPath.isNotEmpty) {
         await recordMp3.resume();
-
+        resumeOverlayPortalController.hide();
+        pauseOverlayPortalController.show();
         status = SoundRecordStatusEnum.recording;
       }
     } catch (e) {
