@@ -58,12 +58,32 @@ class _MyHomePageState extends State<MyHomePage> {
                 Icons.keyboard_voice_outlined,
                 color: Colors.blue,
               ),
-              soundRecorderWhenLockedWidth: 350,
+              soundRecorderWhenLockedWidth:
+                  MediaQuery.sizeOf(context).width - 24,
+              radius: BorderRadius.circular(24),
+              soundRecorderWhenLockedDecoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(32),
+                color: Colors.white,
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(32),
+                color: Colors.white,
+                border: Border.all(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
               startRecording: () {
                 // function called when start recording
+                debugPrint("start recording");
               },
               stopRecording: (_time) {
                 // function called when stop recording, return the recording time
+                debugPrint("stop recording at $_time seconds");
               },
               sendRequestFunction: (soundFile, _time, waveFrom) {
                 debugPrint(

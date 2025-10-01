@@ -127,6 +127,10 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final Decoration? decoration;
 
+  final Widget? pauseWidget;
+
+  final Widget? deleteWidget;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.microphoneRequestPermission,
@@ -173,6 +177,8 @@ class SocialMediaRecorder extends StatefulWidget {
     this.slideToCancelPadding,
     this.recordConfig,
     this.decoration,
+    this.pauseWidget,
+    this.deleteWidget,
     Key? key,
   }) : super(key: key);
 
@@ -215,7 +221,12 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    soundRecordNotifier.didChangeAppLifecycleState(state);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      soundRecordNotifier.didChangeAppLifecycleState(
+        state: state,
+        context: context,
+      );
+    });
   }
 
   @override
@@ -240,8 +251,9 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
 
   Widget makeBody(SoundRecordNotifier state) {
     return SizedBox(
-      height: widget.fullRecordPackageHeight,
+      height: widget.fullRecordPackageHeight + 60,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           GestureDetector(
             onVerticalDragUpdate: (scrollUpdate) {
@@ -290,6 +302,8 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
         counterWidth: widget.counterWidth,
         micCounterWidget: widget.micCounterWidget,
         counterPadding: widget.counterPadding,
+        pauseWidget: widget.pauseWidget,
+        deleteWidget: widget.deleteWidget,
       );
     }
 
