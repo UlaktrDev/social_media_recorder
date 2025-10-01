@@ -135,6 +135,8 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final double? pauseRightPositioned;
 
+  final Decoration? resumeDecoration;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.microphoneRequestPermission,
@@ -185,6 +187,7 @@ class SocialMediaRecorder extends StatefulWidget {
     this.deleteWidget,
     this.pauseBottomPositioned,
     this.pauseRightPositioned,
+    this.resumeDecoration,
     Key? key,
   }) : super(key: key);
 
@@ -312,6 +315,7 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
         deleteWidget: widget.deleteWidget,
         pauseBottomPositioned: widget.pauseBottomPositioned,
         pauseRightPositioned: widget.pauseRightPositioned,
+        resumeDecoration: widget.resumeDecoration,
       );
     }
 
