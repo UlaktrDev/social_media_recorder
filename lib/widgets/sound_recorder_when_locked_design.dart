@@ -56,9 +56,9 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: fullRecordPackageHeight + 60,
+      height: fullRecordPackageHeight + 104,
       child: Stack(
-        alignment: Alignment.bottomCenter,
+        alignment: Alignment.center,
         children: [
           if (soundRecordNotifier.status == SoundRecordStatusEnum.paused) ...[
             Row(
@@ -324,31 +324,34 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
           Positioned(
             top: 0,
             right: 8,
-            child: Material(
-              color: Colors.transparent,
-              child: GestureDetector(
-                onTapDown: (_) async {
-                  await soundRecordNotifier.handlePauseOrResumeAudio(
-                    context: context,
-                  );
-                },
-                child: pauseWidget ??
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
-                        borderRadius: BorderRadius.circular(32),
+            child: Transform.translate(
+              offset: const Offset(0, -16),
+              child: Material(
+                color: Colors.transparent,
+                child: GestureDetector(
+                  onTapDown: (_) async {
+                    await soundRecordNotifier.handlePauseOrResumeAudio(
+                      context: context,
+                    );
+                  },
+                  child: pauseWidget ??
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          borderRadius: BorderRadius.circular(32),
+                        ),
+                        child: Icon(
+                          soundRecordNotifier.status ==
+                                  SoundRecordStatusEnum.paused
+                              ? Icons.mic_outlined
+                              : Icons.pause,
+                          size: 20,
+                          color: Colors.black,
+                        ),
                       ),
-                      child: Icon(
-                        soundRecordNotifier.status ==
-                                SoundRecordStatusEnum.paused
-                            ? Icons.mic_outlined
-                            : Icons.pause,
-                        size: 20,
-                        color: Colors.black,
-                      ),
-                    ),
+                ),
               ),
             ),
           ),
