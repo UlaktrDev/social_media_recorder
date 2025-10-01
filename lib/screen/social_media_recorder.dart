@@ -251,12 +251,8 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
 
   Widget makeBody(SoundRecordNotifier state) {
     return SizedBox(
-      height: widget.fullRecordPackageHeight +
-          (soundRecordNotifier.isLocked ? 104 : 0),
+      height: widget.fullRecordPackageHeight,
       child: Row(
-        crossAxisAlignment: soundRecordNotifier.isLocked
-            ? CrossAxisAlignment.end
-            : CrossAxisAlignment.center,
         children: [
           GestureDetector(
             onVerticalDragUpdate: (scrollUpdate) {
