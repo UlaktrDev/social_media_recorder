@@ -257,7 +257,7 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
 
   Widget makeBody(SoundRecordNotifier state) {
     return SizedBox(
-      height: widget.fullRecordPackageHeight + 56,
+      height: widget.fullRecordPackageHeight,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
