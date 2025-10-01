@@ -1,6 +1,7 @@
 library social_media_recorder;
 
 import 'package:async/async.dart';
+import 'package:defer_pointer/defer_pointer.dart';
 import 'package:flutter/material.dart';
 import 'package:social_media_recorder/provider/sound_record_notifier.dart';
 import 'package:social_media_recorder/widgets/show_counter.dart';
@@ -318,34 +319,36 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
               ),
             ),
           ),
-        Transform.translate(
-          offset: const Offset(-8, -72),
-          child: Material(
-            color: Colors.transparent,
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTapDown: (_) async {
-                await soundRecordNotifier.handlePauseOrResumeAudio(
-                  context: context,
-                );
-              },
-              child: pauseWidget ??
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(32),
+        DeferPointer(
+          child: Transform.translate(
+            offset: const Offset(-8, -72),
+            child: Material(
+              color: Colors.transparent,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTapDown: (_) async {
+                  await soundRecordNotifier.handlePauseOrResumeAudio(
+                    context: context,
+                  );
+                },
+                child: pauseWidget ??
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      child: Icon(
+                        soundRecordNotifier.status ==
+                                SoundRecordStatusEnum.paused
+                            ? Icons.mic_outlined
+                            : Icons.pause,
+                        size: 20,
+                        color: Colors.black,
+                      ),
                     ),
-                    child: Icon(
-                      soundRecordNotifier.status ==
-                              SoundRecordStatusEnum.paused
-                          ? Icons.mic_outlined
-                          : Icons.pause,
-                      size: 20,
-                      color: Colors.black,
-                    ),
-                  ),
+              ),
             ),
           ),
         ),

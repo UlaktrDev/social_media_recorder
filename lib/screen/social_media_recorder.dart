@@ -1,6 +1,7 @@
 library social_media_recorder;
 
 import 'dart:io';
+import 'package:defer_pointer/defer_pointer.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -250,28 +251,30 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
   }
 
   Widget makeBody(SoundRecordNotifier state) {
-    return SizedBox(
-      height: widget.fullRecordPackageHeight,
-      child: Row(
-        children: [
-          GestureDetector(
-            onVerticalDragUpdate: (scrollUpdate) {
-              state.updateScrollVerticalValue(scrollUpdate.globalPosition);
-            },
-            onHorizontalDragUpdate: (scrollEnd) {
-              state.updateScrollHorizontalValue(
-                scrollEnd.globalPosition,
-                context,
-              );
-            },
-            onHorizontalDragEnd: (x) {
-              if (state.buttonPressed && !state.isLocked) {
-                state.finishRecording();
-              }
-            },
-            child: recordVoice(state),
-          )
-        ],
+    return DeferredPointerHandler(
+      child: SizedBox(
+        height: widget.fullRecordPackageHeight,
+        child: Row(
+          children: [
+            GestureDetector(
+              onVerticalDragUpdate: (scrollUpdate) {
+                state.updateScrollVerticalValue(scrollUpdate.globalPosition);
+              },
+              onHorizontalDragUpdate: (scrollEnd) {
+                state.updateScrollHorizontalValue(
+                  scrollEnd.globalPosition,
+                  context,
+                );
+              },
+              onHorizontalDragEnd: (x) {
+                if (state.buttonPressed && !state.isLocked) {
+                  state.finishRecording();
+                }
+              },
+              child: recordVoice(state),
+            )
+          ],
+        ),
       ),
     );
   }
