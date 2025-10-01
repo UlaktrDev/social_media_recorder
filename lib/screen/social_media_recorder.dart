@@ -27,6 +27,10 @@ class SocialMediaRecorder extends StatefulWidget {
   /// function called when stop recording, return the recording time (even if time < 1)
   final Function(String time)? stopRecording;
 
+  final Function()? pauseRecording;
+
+  final Function()? resumeRecording;
+
   /// recording Icon That pressesd to start record
   final Widget recordIcon;
 
@@ -188,6 +192,8 @@ class SocialMediaRecorder extends StatefulWidget {
     this.pauseBottomPositioned,
     this.pauseRightPositioned,
     this.resumeDecoration,
+    this.pauseRecording,
+    this.resumeRecording,
     Key? key,
   }) : super(key: key);
 
@@ -209,6 +215,8 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
       sendRequestFunction: widget.sendRequestFunction,
       waveCount: widget.waveCount,
       recordConfig: widget.recordConfig,
+      pauseRecording: widget.pauseRecording,
+      resumeRecording: widget.resumeRecording,
     );
 
     soundRecordNotifier.initialStorePathRecord =

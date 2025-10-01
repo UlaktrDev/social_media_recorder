@@ -98,6 +98,10 @@ class SoundRecordNotifier extends ChangeNotifier {
   /// function called when stop recording, return the recording time (even if time < 1)
   Function(String time)? stopRecording;
 
+  Function()? pauseRecording;
+
+  Function()? resumeRecording;
+
   late AudioEncoderType encode;
 
   late int waveCount;
@@ -115,6 +119,8 @@ class SoundRecordNotifier extends ChangeNotifier {
   SoundRecordNotifier({
     required this.stopRecording,
     required this.sendRequestFunction,
+    required this.pauseRecording,
+    required this.resumeRecording,
     required this.startRecording,
     required this.waveCount,
     this.edge = 0.0,
@@ -159,7 +165,7 @@ class SoundRecordNotifier extends ChangeNotifier {
         }
         String path = mPath;
         Duration _time = Duration(minutes: minute, seconds: second);
-        sendRequestFunction(File.fromUri(Uri(path: path)), _time, _waveform);
+        sendRequestFunction(File.fromUri(Uri(path: path)), _time, previewWaveform);
         stopRecording!(minute.toString() + ":" + second.toString());
         _recorderSubscription?.cancel();
         resetEdgePadding();
@@ -463,6 +469,7 @@ class SoundRecordNotifier extends ChangeNotifier {
     required BuildContext context,
   }) async {
     if (status != SoundRecordStatusEnum.recording) return;
+    pauseRecording?.call();
     final waveForm = calculateWaveForm(
           eventWaveForm: previewWaveform,
           waveCount: calculateWaveCountAuto(
@@ -499,6 +506,7 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   void handleResumeAudio() async {
     if (status != SoundRecordStatusEnum.paused) return;
+    resumeRecording?.call();
     try {
       if (mPath.isNotEmpty) {
         await recordMp3.resume();
