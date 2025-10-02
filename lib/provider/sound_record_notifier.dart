@@ -24,14 +24,10 @@ class SoundRecordNotifier extends ChangeNotifier {
   int? maxRecordTime;
   final List<double> _amplitudeTimeline = [];
   AudioPlayer audioPlayer = AudioPlayer();
-  final List<int> _waveform = [];
   final List<double> _calculatedWaveform = [];
   Timer? _recorderSubscription;
 
   final OverlayPortalController pauseOverlayPortalController =
-      OverlayPortalController();
-
-  final OverlayPortalController resumeOverlayPortalController =
       OverlayPortalController();
 
   SoundRecordStatusEnum status = SoundRecordStatusEnum.initial;
@@ -149,8 +145,6 @@ class SoundRecordNotifier extends ChangeNotifier {
     });
   }
 
-  List<int> get previewWaveform => _waveform;
-
   List<double> get calculatedWaveform => _calculatedWaveform;
 
   int maxWaveCount(BuildContext context) =>
@@ -160,9 +154,6 @@ class SoundRecordNotifier extends ChangeNotifier {
     await Future.delayed(const Duration(milliseconds: 400));
     if (buttonPressed) {
       if (second > 1 || minute > 0) {
-        if (await recordMp3.isPaused()) {
-          await recordMp3.resume();
-        }
         String path = mPath;
         Duration _time = Duration(minutes: minute, seconds: second);
         final step = _amplitudeTimeline.length < waveCount
@@ -203,7 +194,6 @@ class SoundRecordNotifier extends ChangeNotifier {
     heightPosition = 0;
     lockScreenRecord = false;
     _amplitudeTimeline.clear();
-    _waveform.clear();
     _calculatedWaveform.clear();
     mPath = '';
     status = SoundRecordStatusEnum.initial;
@@ -384,12 +374,6 @@ class SoundRecordNotifier extends ChangeNotifier {
           var value = 100 + amplitude.current * 2;
           value = value < 1 ? 1 : value;
           _amplitudeTimeline.add(value);
-          final step = _amplitudeTimeline.length < waveCount
-              ? 1
-              : (_amplitudeTimeline.length / waveCount).round();
-          for (var i = 0; i < _amplitudeTimeline.length; i += step) {
-            _waveform.add((_amplitudeTimeline[i] / 100 * 1024).round());
-          }
         } catch (e) {
           debugPrint('Error getting amplitude: $e');
           rethrow;
@@ -467,8 +451,6 @@ class SoundRecordNotifier extends ChangeNotifier {
   }) async {
     if (status == SoundRecordStatusEnum.recording) {
       await handlePauseAudio(context: context);
-    } else if (status == SoundRecordStatusEnum.paused) {
-      handleResumeAudio();
     }
   }
 
@@ -476,9 +458,17 @@ class SoundRecordNotifier extends ChangeNotifier {
     required BuildContext context,
   }) async {
     if (status != SoundRecordStatusEnum.recording) return;
+    final step = _amplitudeTimeline.length < waveCount
+        ? 1
+        : (_amplitudeTimeline.length / waveCount).round();
+    final waveform = <int>[];
+    for (var i = 0; i < _amplitudeTimeline.length; i += step) {
+      waveform.add((_amplitudeTimeline[i] / 100 * 1024).round());
+    }
+
     pauseRecording?.call();
     final waveForm = calculateWaveForm(
-          eventWaveForm: previewWaveform,
+          eventWaveForm: waveform,
           waveCount: calculateWaveCountAuto(
             minWaves: minWaves,
             maxWaves: maxWaveCount(context),
@@ -493,14 +483,16 @@ class SoundRecordNotifier extends ChangeNotifier {
       maxHeight: maxWaveHeight,
     );
 
-    if (previewWaveform.isNotEmpty) {
+    if (waveform.isNotEmpty) {
       _calculatedWaveform.clear();
       _calculatedWaveform.addAll(waveFromHeight);
     }
     try {
-      recordMp3.pause();
+      final finalPath = await recordMp3.stop();
 
-      resumeOverlayPortalController.show();
+      final audio = audioPlayer = AudioPlayer();
+
+      await audio.setFilePath(finalPath ?? mPath);
 
       pauseOverlayPortalController.hide();
 
@@ -511,18 +503,13 @@ class SoundRecordNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  void handleResumeAudio() async {
-    if (status != SoundRecordStatusEnum.paused) return;
-    resumeRecording?.call();
-    try {
-      if (mPath.isNotEmpty) {
-        await recordMp3.resume();
-        resumeOverlayPortalController.hide();
-        pauseOverlayPortalController.show();
-        status = SoundRecordStatusEnum.recording;
-      }
-    } catch (e) {
-      debugPrint('Error resuming recording: $e');
+  void handlePlayOrPausePreviewAudio() {
+    if (audioPlayer.isAtEndPosition == true) {
+      audioPlayer.seek(Duration.zero);
+    } else if (audioPlayer.playing == true) {
+      audioPlayer.pause();
+    } else {
+      audioPlayer.play();
     }
     notifyListeners();
   }
@@ -616,5 +603,13 @@ class SoundRecordNotifier extends ChangeNotifier {
     _timerCounter?.cancel();
     recordMp3.cancel();
     super.dispose();
+  }
+}
+
+extension AudioPlayExtension on AudioPlayer {
+  bool get isAtEndPosition {
+    final duration = this.duration;
+    if (duration == null) return true;
+    return position >= duration;
   }
 }

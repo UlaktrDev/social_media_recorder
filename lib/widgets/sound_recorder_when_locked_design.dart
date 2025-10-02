@@ -67,70 +67,37 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
       children: [
         if (soundRecordNotifier.status == SoundRecordStatusEnum.paused) ...[
           Container(
-            decoration: resumeDecoration ?? const BoxDecoration(
-              color: Colors.transparent,
-            ),
+            decoration: resumeDecoration ??
+                const BoxDecoration(
+                  color: Colors.transparent,
+                ),
             child: Row(
               children: [
-                OverlayPortal(
-                  controller: soundRecordNotifier.resumeOverlayPortalController,
-                  overlayChildBuilder: (BuildContext context) {
-                    return Positioned(
-                      bottom: pauseBottomPositioned ?? 0,
-                      right: pauseRightPositioned ?? 8,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.translucent,
-                        onTapDown: (_) async {
-                          await soundRecordNotifier.handlePauseOrResumeAudio(
-                            context: context,
-                          );
-                        },
-                        child: pauseWidget ??
-                            Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(32),
-                              ),
-                              child: Icon(
-                                soundRecordNotifier.status ==
-                                    SoundRecordStatusEnum.paused
-                                    ? Icons.mic_outlined
-                                    : Icons.pause,
-                                size: 20,
-                                color: Colors.black,
-                              ),
-                            ),
-                      ),
-                    );
+                InkWell(
+                  hoverColor: Colors.transparent,
+                  splashColor: Colors.transparent,
+                  highlightColor: Colors.transparent,
+                  focusColor: Colors.transparent,
+                  onTap: () async {
+                    soundRecordNotifier.isShow = false;
+                    soundRecordNotifier.finishRecording();
                   },
-                  child: InkWell(
-                    hoverColor: Colors.transparent,
-                    splashColor: Colors.transparent,
-                    highlightColor: Colors.transparent,
-                    focusColor: Colors.transparent,
-                    onTap: () async {
-                      soundRecordNotifier.isShow = false;
-                      soundRecordNotifier.finishRecording();
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(600),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 500),
-                        curve: Curves.easeIn,
-                        width: fullRecordPackageHeight,
-                        height: fullRecordPackageHeight,
-                        child: Container(
-                          color: recordIconWhenLockBackGroundColor,
-                          child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Icon(
-                              Icons.send,
-                              textDirection: TextDirection.ltr,
-                              size: 20,
-                              color: Colors.grey.shade200,
-                            ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(600),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.easeIn,
+                      width: fullRecordPackageHeight,
+                      height: fullRecordPackageHeight,
+                      child: Container(
+                        color: recordIconWhenLockBackGroundColor,
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Icon(
+                            Icons.send,
+                            textDirection: TextDirection.ltr,
+                            size: 20,
+                            color: Colors.grey.shade200,
                           ),
                         ),
                       ),
@@ -143,88 +110,111 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                   width: MediaQuery.sizeOf(context).width - 128,
                   decoration: soundRecorderWhenLockedDecoration ??
                       BoxDecoration(
-                        color: cancelTextBackGroundColor ?? Colors.grey.shade100,
+                        color:
+                            cancelTextBackGroundColor ?? Colors.grey.shade100,
                         borderRadius: const BorderRadius.only(
                           bottomRight: Radius.circular(24),
                           topRight: Radius.circular(24),
                         ),
                       ),
                   margin: soundRecorderWhenLockedMargin,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding: counterPadding ?? EdgeInsets.zero,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              soundRecordNotifier.second
-                                  .toString()
-                                  .padLeft(2, '0'),
-                              style: counterTextStyle ??
-                                  const TextStyle(color: Colors.black),
-                            ),
-                            Text(
-                              " : ",
-                              style: counterTextStyle,
-                            ),
-                            Text(
-                              soundRecordNotifier.minute
-                                  .toString()
-                                  .padLeft(2, '0'),
-                              style: counterTextStyle ??
-                                  const TextStyle(color: Colors.black),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      StreamBuilder(
-                        stream: StreamGroup.merge([
-                          soundRecordNotifier.audioPlayer.positionStream
-                              .asBroadcastStream(),
-                          soundRecordNotifier.audioPlayer.playerStateStream
-                              .asBroadcastStream(),
-                        ]),
-                        builder: (context, snapshot) {
-                          final maxPosition = soundRecordNotifier
-                                  .audioPlayer.duration?.inMilliseconds
-                                  .toDouble() ??
-                              1.0;
-                          var currentPosition = soundRecordNotifier
-                              .audioPlayer.position.inMilliseconds
-                              .toDouble();
-                          if (currentPosition > maxPosition) {
-                            currentPosition = maxPosition;
-                          }
+                  child: StreamBuilder(
+                    stream: StreamGroup.merge([
+                      soundRecordNotifier.audioPlayer.positionStream
+                          .asBroadcastStream(),
+                      soundRecordNotifier.audioPlayer.playerStateStream
+                          .asBroadcastStream(),
+                    ]),
+                    builder: (context, snapshot) {
+                      final maxPosition = soundRecordNotifier
+                              .audioPlayer.duration?.inMilliseconds
+                              .toDouble() ??
+                          1.0;
+                      var currentPosition = soundRecordNotifier
+                          .audioPlayer.position.inMilliseconds
+                          .toDouble();
+                      if (currentPosition > maxPosition) {
+                        currentPosition = maxPosition;
+                      }
 
-                          final wavePosition = (currentPosition / maxPosition) *
-                              soundRecordNotifier.calculateWaveCountAuto(
-                                minWaves: 32,
-                                maxWaves:
-                                    soundRecordNotifier.maxWaveCount(context),
-                                durationInSeconds: soundRecordNotifier.second +
-                                    (soundRecordNotifier.minute * 60),
-                              );
-                          return Row(
-                            children: List.generate(
-                              soundRecordNotifier.calculatedWaveform.length,
-                              (index) {
-                                return _waveItemBuilder(
-                                  index: index,
-                                  waveHeight: soundRecordNotifier
-                                      .calculatedWaveform[index],
-                                  wavePosition: wavePosition,
-                                );
-                              },
-                            ),
+                      final wavePosition = (currentPosition / maxPosition) *
+                          soundRecordNotifier.calculateWaveCountAuto(
+                            minWaves: 32,
+                            maxWaves: soundRecordNotifier.maxWaveCount(context),
+                            durationInSeconds: soundRecordNotifier.second +
+                                (soundRecordNotifier.minute * 60),
                           );
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                    ],
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: counterPadding ?? EdgeInsets.zero,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  soundRecordNotifier.second
+                                      .toString()
+                                      .padLeft(2, '0'),
+                                  style: counterTextStyle ??
+                                      const TextStyle(color: Colors.black),
+                                ),
+                                Text(
+                                  " : ",
+                                  style: counterTextStyle,
+                                ),
+                                Text(
+                                  soundRecordNotifier.minute
+                                      .toString()
+                                      .padLeft(2, '0'),
+                                  style: counterTextStyle ??
+                                      const TextStyle(color: Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Directionality(
+                            textDirection: TextDirection.ltr,
+                            child: Row(
+                              children: List.generate(
+                                soundRecordNotifier
+                                    .calculatedWaveform.reversed.length,
+                                (index) {
+                                  return _waveItemBuilder(
+                                    index: index,
+                                    waveHeight: soundRecordNotifier
+                                        .calculatedWaveform[index],
+                                    wavePosition: wavePosition,
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: InkWell(
+                              onTap: () {
+                                soundRecordNotifier
+                                    .handlePlayOrPausePreviewAudio();
+                              },
+                              child: Icon(
+                                soundRecordNotifier.audioPlayer.playing &&
+                                        soundRecordNotifier
+                                                .audioPlayer.isAtEndPosition ==
+                                            false
+                                    ? Icons.pause
+                                    : Icons.play_arrow,
+                                size: 18,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -276,7 +266,8 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   OverlayPortal(
-                    controller: soundRecordNotifier.pauseOverlayPortalController,
+                    controller:
+                        soundRecordNotifier.pauseOverlayPortalController,
                     overlayChildBuilder: (BuildContext context) {
                       return Positioned(
                         bottom: pauseBottomPositioned ?? 0,
