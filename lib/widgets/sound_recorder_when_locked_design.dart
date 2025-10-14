@@ -32,6 +32,9 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
   final Decoration? resumeDecoration;
   final Color? pauseHighlightColor;
   final Color? pauseSplashColor;
+  final Color? pauseBackGroundColor;
+  final Color? pauseIconColor;
+  final Color? pauseBorderColor;
 
   // ignore: sort_constructors_first
   const SoundRecorderWhenLockedDesign({
@@ -61,6 +64,9 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
     this.resumeDecoration,
     this.pauseHighlightColor,
     this.pauseSplashColor,
+    this.pauseBackGroundColor,
+    this.pauseIconColor,
+    this.pauseBorderColor,
   }) : super(key: key);
 
   @override
@@ -293,8 +299,12 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                                   width: 32,
                                   height: 32,
                                   decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
+                                    color: pauseBackGroundColor ?? Colors.grey.shade200,
                                     borderRadius: BorderRadius.circular(32),
+                                    border: Border.all(
+                                      color: pauseBorderColor ?? Colors.white,
+                                      width: 1,
+                                    ),
                                   ),
                                   child: Icon(
                                     soundRecordNotifier.status ==
@@ -302,7 +312,7 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                                         ? Icons.mic_outlined
                                         : Icons.pause,
                                     size: 20,
-                                    color: Colors.black,
+                                    color: pauseIconColor ?? Colors.black,
                                   ),
                                 ),
                           ),

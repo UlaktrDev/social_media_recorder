@@ -145,6 +145,12 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final Color? pauseSplashColor;
 
+  final Color? pauseBackGroundColor;
+
+  final Color? pauseIconColor;
+
+  final Color? pauseBorderColor;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.microphoneRequestPermission,
@@ -200,6 +206,9 @@ class SocialMediaRecorder extends StatefulWidget {
     this.resumeRecording,
     this.pauseHighlightColor,
     this.pauseSplashColor,
+    this.pauseBackGroundColor,
+    this.pauseIconColor,
+    this.pauseBorderColor,
     Key? key,
   }) : super(key: key);
 
@@ -332,6 +341,9 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
         resumeDecoration: widget.resumeDecoration,
         pauseHighlightColor: widget.pauseHighlightColor,
         pauseSplashColor: widget.pauseSplashColor,
+        pauseBackGroundColor: widget.pauseBackGroundColor,
+        pauseIconColor: widget.pauseIconColor,
+        pauseBorderColor: widget.pauseBorderColor,
       );
     }
 
