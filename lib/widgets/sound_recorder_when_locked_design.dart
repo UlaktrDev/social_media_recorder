@@ -30,6 +30,8 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
   final double? pauseBottomPositioned;
   final double? pauseRightPositioned;
   final Decoration? resumeDecoration;
+  final Color? pauseHighlightColor;
+  final Color? pauseSplashColor;
 
   // ignore: sort_constructors_first
   const SoundRecorderWhenLockedDesign({
@@ -57,6 +59,8 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
     this.pauseBottomPositioned,
     this.pauseRightPositioned,
     this.resumeDecoration,
+    this.pauseHighlightColor,
+    this.pauseSplashColor,
   }) : super(key: key);
 
   @override
@@ -274,6 +278,9 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                         right: pauseRightPositioned ?? 8,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(32),
+                          splashColor: pauseSplashColor ?? Colors.grey.shade400,
+                          highlightColor:
+                              pauseHighlightColor ?? Colors.grey.shade300,
                           onTap: () async {
                             await soundRecordNotifier.handlePauseOrResumeAudio(
                               context: context,
