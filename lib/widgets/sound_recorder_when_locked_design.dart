@@ -286,23 +286,26 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                               context: context,
                             );
                           },
-                          child: pauseWidget ??
-                              Ink(
-                                width: 32,
-                                height: 32,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(32),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: pauseWidget ??
+                                Ink(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(32),
+                                  ),
+                                  child: Icon(
+                                    soundRecordNotifier.status ==
+                                            SoundRecordStatusEnum.paused
+                                        ? Icons.mic_outlined
+                                        : Icons.pause,
+                                    size: 20,
+                                    color: Colors.black,
+                                  ),
                                 ),
-                                child: Icon(
-                                  soundRecordNotifier.status ==
-                                          SoundRecordStatusEnum.paused
-                                      ? Icons.mic_outlined
-                                      : Icons.pause,
-                                  size: 20,
-                                  color: Colors.black,
-                                ),
-                              ),
+                          ),
                         ),
                       );
                     },
