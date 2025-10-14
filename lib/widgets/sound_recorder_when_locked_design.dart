@@ -292,30 +292,27 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                               context: context,
                             );
                           },
-                          child: Material(
-                            color: Colors.transparent,
-                            child: pauseWidget ??
-                                Ink(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: pauseBackGroundColor ?? Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(32),
-                                    border: Border.all(
-                                      color: pauseBorderColor ?? Colors.white,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    soundRecordNotifier.status ==
-                                            SoundRecordStatusEnum.paused
-                                        ? Icons.mic_outlined
-                                        : Icons.pause,
-                                    size: 20,
-                                    color: pauseIconColor ?? Colors.black,
+                          child: pauseWidget ??
+                              Ink(
+                                width: 32,
+                                height: 32,
+                                decoration: BoxDecoration(
+                                  color: pauseBackGroundColor ?? Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(32),
+                                  border: Border.all(
+                                    color: pauseBorderColor ?? Colors.white,
+                                    width: 1,
                                   ),
                                 ),
-                          ),
+                                child: Icon(
+                                  soundRecordNotifier.status ==
+                                          SoundRecordStatusEnum.paused
+                                      ? Icons.mic_outlined
+                                      : Icons.pause,
+                                  size: 20,
+                                  color: pauseIconColor ?? Colors.black,
+                                ),
+                              ),
                         ),
                       );
                     },
