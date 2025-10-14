@@ -272,15 +272,15 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                       return Positioned(
                         bottom: pauseBottomPositioned ?? 0,
                         right: pauseRightPositioned ?? 8,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          onTapDown: (_) async {
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(32),
+                          onTap: () async {
                             await soundRecordNotifier.handlePauseOrResumeAudio(
                               context: context,
                             );
                           },
                           child: pauseWidget ??
-                              Container(
+                              Ink(
                                 width: 32,
                                 height: 32,
                                 decoration: BoxDecoration(
