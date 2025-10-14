@@ -168,6 +168,7 @@ class SoundRecordNotifier extends ChangeNotifier {
         _recorderSubscription?.cancel();
         resetEdgePadding();
         status = SoundRecordStatusEnum.initial;
+
         return;
       }
     }
@@ -199,6 +200,9 @@ class SoundRecordNotifier extends ChangeNotifier {
     status = SoundRecordStatusEnum.initial;
     if (_timer != null) _timer!.cancel();
     if (_timerCounter != null) _timerCounter!.cancel();
+    if (audioPlayer.playing) {
+      await audioPlayer.stop();
+    }
     try {
       final value = await recordMp3.isRecording();
 
