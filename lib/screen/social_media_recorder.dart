@@ -31,6 +31,8 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final Function()? resumeRecording;
 
+  final Function()? deleteRecording;
+
   /// recording Icon That pressesd to start record
   final Widget recordIcon;
 
@@ -204,6 +206,7 @@ class SocialMediaRecorder extends StatefulWidget {
     this.resumeDecoration,
     this.pauseRecording,
     this.resumeRecording,
+    this.deleteRecording,
     this.pauseHighlightColor,
     this.pauseSplashColor,
     this.pauseBackGroundColor,
@@ -344,6 +347,7 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
         pauseBackGroundColor: widget.pauseBackGroundColor,
         pauseIconColor: widget.pauseIconColor,
         pauseBorderColor: widget.pauseBorderColor,
+        deleteRecording: widget.deleteRecording,
       );
     }
 

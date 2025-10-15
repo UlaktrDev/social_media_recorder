@@ -100,15 +100,15 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   late AudioEncoderType encode;
 
-  late int waveCount;
+  final int waveCount;
 
   late RecordConfig? recordConfig;
 
-  late int minWaves;
+  final int minWaves;
 
-  late double minWaveHeight;
+  final double minWaveHeight;
 
-  late double maxWaveHeight;
+  final double maxWaveHeight;
 
   // ignore: sort_constructors_first
 

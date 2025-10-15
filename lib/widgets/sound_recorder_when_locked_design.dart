@@ -35,6 +35,7 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
   final Color? pauseBackGroundColor;
   final Color? pauseIconColor;
   final Color? pauseBorderColor;
+  final Function()? deleteRecording;
 
   // ignore: sort_constructors_first
   const SoundRecorderWhenLockedDesign({
@@ -67,6 +68,7 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
     this.pauseBackGroundColor,
     this.pauseIconColor,
     this.pauseBorderColor,
+    this.deleteRecording,
   }) : super(key: key);
 
   @override
@@ -230,6 +232,7 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                 const SizedBox(width: 8),
                 InkWell(
                   onTap: () {
+                    deleteRecording?.call();
                     soundRecordNotifier.resetEdgePadding();
                   },
                   child: SizedBox(
@@ -297,7 +300,8 @@ class SoundRecorderWhenLockedDesign extends StatelessWidget {
                                 width: 32,
                                 height: 32,
                                 decoration: BoxDecoration(
-                                  color: pauseBackGroundColor ?? Colors.grey.shade200,
+                                  color: pauseBackGroundColor ??
+                                      Colors.grey.shade200,
                                   borderRadius: BorderRadius.circular(32),
                                   border: Border.all(
                                     color: pauseBorderColor ?? Colors.white,
