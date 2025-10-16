@@ -1,14 +1,21 @@
 import 'dart:async';
 import 'dart:io';
-
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:social_media_recorder/audio_encoder_type.dart';
 import 'package:vibration/vibration.dart';
 import 'package:vibration/vibration_presets.dart';
-// import 'package:uuid/uuid.dart';
+
+enum SoundRecordStatusEnum {
+  initial,
+  recording,
+  paused,
+  resumed,
+}
 
 class SoundRecordNotifier extends ChangeNotifier {
   int _counter = 0;
@@ -16,7 +23,14 @@ class SoundRecordNotifier extends ChangeNotifier {
   GlobalKey key = GlobalKey();
   int? maxRecordTime;
   final List<double> _amplitudeTimeline = [];
+  AudioPlayer audioPlayer = AudioPlayer();
+  final List<double> _calculatedWaveform = [];
   Timer? _recorderSubscription;
+
+  final OverlayPortalController pauseOverlayPortalController =
+      OverlayPortalController();
+
+  SoundRecordStatusEnum status = SoundRecordStatusEnum.initial;
 
   /// This Timer Just For wait about 1 second until starting record
   Timer? _timer;
@@ -70,6 +84,7 @@ class SoundRecordNotifier extends ChangeNotifier {
   /// false
   late bool lockScreenRecord;
   late String mPath;
+  late String tempPlaybackPath;
 
   /// function called when start recording
   Function()? startRecording;
@@ -79,17 +94,29 @@ class SoundRecordNotifier extends ChangeNotifier {
   /// function called when stop recording, return the recording time (even if time < 1)
   Function(String time)? stopRecording;
 
+  Function()? pauseRecording;
+
+  Function()? resumeRecording;
+
   late AudioEncoderType encode;
 
-  late int waveCount;
+  final int waveCount;
 
   late RecordConfig? recordConfig;
+
+  final int minWaves;
+
+  final double minWaveHeight;
+
+  final double maxWaveHeight;
 
   // ignore: sort_constructors_first
 
   SoundRecordNotifier({
     required this.stopRecording,
     required this.sendRequestFunction,
+    required this.pauseRecording,
+    required this.resumeRecording,
     required this.startRecording,
     required this.waveCount,
     this.edge = 0.0,
@@ -98,12 +125,16 @@ class SoundRecordNotifier extends ChangeNotifier {
     this.buttonPressed = false,
     this.loopActive = false,
     this.mPath = '',
+    tempPlaybackPath = '',
     this.startRecord = false,
     this.heightPosition = 0,
     this.lockScreenRecord = false,
     this.encode = AudioEncoderType.AAC,
     this.maxRecordTime,
     this.recordConfig = const RecordConfig(),
+    this.minWaves = 32,
+    this.minWaveHeight = 4.0,
+    this.maxWaveHeight = 4.0,
   });
 
   /// To increase counter after 1 sencond
@@ -113,6 +144,11 @@ class SoundRecordNotifier extends ChangeNotifier {
       if (buttonPressed) _mapCounterGenerater();
     });
   }
+
+  List<double> get calculatedWaveform => _calculatedWaveform;
+
+  int maxWaveCount(BuildContext context) =>
+      (MediaQuery.sizeOf(context).width - 224) ~/ 4;
 
   Future<void> finishRecording() async {
     await Future.delayed(const Duration(milliseconds: 400));
@@ -131,11 +167,14 @@ class SoundRecordNotifier extends ChangeNotifier {
         stopRecording!(minute.toString() + ":" + second.toString());
         _recorderSubscription?.cancel();
         resetEdgePadding();
+        status = SoundRecordStatusEnum.initial;
+
         return;
       }
     }
     stopRecording!('');
     resetEdgePadding();
+    status = SoundRecordStatusEnum.initial;
   }
 
   /// used to reset all value to initial value when end the record
@@ -155,8 +194,15 @@ class SoundRecordNotifier extends ChangeNotifier {
     key = GlobalKey();
     heightPosition = 0;
     lockScreenRecord = false;
+    _amplitudeTimeline.clear();
+    _calculatedWaveform.clear();
+    mPath = '';
+    status = SoundRecordStatusEnum.initial;
     if (_timer != null) _timer!.cancel();
     if (_timerCounter != null) _timerCounter!.cancel();
+    if (audioPlayer.playing) {
+      await audioPlayer.stop();
+    }
     try {
       final value = await recordMp3.isRecording();
 
@@ -172,7 +218,6 @@ class SoundRecordNotifier extends ChangeNotifier {
       debugPrint('Error checking recording status: $e');
       stopRecording!('');
     }
-
     notifyListeners();
   }
 
@@ -225,11 +270,14 @@ class SoundRecordNotifier extends ChangeNotifier {
       isLocked = true;
       lockScreenRecord = true;
       hightValue = 50;
-      notifyListeners();
     }
     if (hightValue < 0) hightValue = 0;
     heightPosition = hightValue;
     lockScreenRecord = isLocked;
+
+    if (lockScreenRecord) {
+      pauseOverlayPortalController.show();
+    }
     notifyListeners();
   }
 
@@ -281,6 +329,9 @@ class SoundRecordNotifier extends ChangeNotifier {
   /// when reached to 60 sec
   /// reset the sec and increase the min by 1
   _increaseCounterWhilePressed() async {
+    if (status == SoundRecordStatusEnum.paused) {
+      return;
+    }
     if (loopActive) {
       return;
     }
@@ -313,6 +364,7 @@ class SoundRecordNotifier extends ChangeNotifier {
 
     try {
       buttonPressed = true;
+      status = SoundRecordStatusEnum.recording;
       String recordFilePath = await getFilePath();
       if (_timer != null) {
         _timer?.cancel();
@@ -383,14 +435,169 @@ class SoundRecordNotifier extends ChangeNotifier {
     }
   }
 
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState({
+    required AppLifecycleState state,
+    required BuildContext context,
+  }) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive ||
         state == AppLifecycleState.hidden) {
-      stopRecording!('');
-      _recorderSubscription?.cancel();
-      resetEdgePadding();
+      if (buttonPressed || isLocked) {
+        handlePauseOrResumeAudio(
+          context: context,
+        );
+      }
     }
+  }
+
+  Future<void> handlePauseOrResumeAudio({
+    required BuildContext context,
+  }) async {
+    if (status == SoundRecordStatusEnum.recording) {
+      await handlePauseAudio(context: context);
+    }
+  }
+
+  Future<void> handlePauseAudio({
+    required BuildContext context,
+  }) async {
+    if (status != SoundRecordStatusEnum.recording) return;
+    final step = _amplitudeTimeline.length < waveCount
+        ? 1
+        : (_amplitudeTimeline.length / waveCount).round();
+    final waveform = <int>[];
+    for (var i = 0; i < _amplitudeTimeline.length; i += step) {
+      waveform.add((_amplitudeTimeline[i] / 100 * 1024).round());
+    }
+
+    pauseRecording?.call();
+    final waveForm = calculateWaveForm(
+          eventWaveForm: waveform,
+          waveCount: calculateWaveCountAuto(
+            minWaves: minWaves,
+            maxWaves: maxWaveCount(context),
+            durationInSeconds: (minute * 60) + second,
+          ),
+        ) ??
+        [];
+
+    final waveFromHeight = calculateWaveHeight(
+      waveform: waveForm,
+      minHeight: minWaveHeight,
+      maxHeight: maxWaveHeight,
+    );
+
+    if (waveform.isNotEmpty) {
+      _calculatedWaveform.clear();
+      _calculatedWaveform.addAll(waveFromHeight);
+    }
+    try {
+      final finalPath = await recordMp3.stop();
+
+      final audio = audioPlayer = AudioPlayer();
+
+      await audio.setFilePath(finalPath ?? mPath);
+
+      pauseOverlayPortalController.hide();
+
+      status = SoundRecordStatusEnum.paused;
+    } catch (e) {
+      debugPrint('Error pausing recording: $e');
+    }
+    notifyListeners();
+  }
+
+  void handlePlayOrPausePreviewAudio() {
+    if (audioPlayer.isAtEndPosition == true) {
+      audioPlayer.seek(Duration.zero);
+    } else if (audioPlayer.playing == true) {
+      audioPlayer.pause();
+    } else {
+      audioPlayer.play();
+    }
+    notifyListeners();
+  }
+
+  int calculateWaveCountAuto({
+    required int minWaves,
+    required int maxWaves,
+    required int durationInSeconds,
+  }) {
+    final double progress =
+        min(1.0, (durationInSeconds - 30) / 90); // 0-1 over 30-120s
+    final int rangeStart = (minWaves + (maxWaves - minWaves) * 0.7).round();
+    final int rangeSize = ((maxWaves - minWaves) * 0.3).round();
+    return (rangeStart + rangeSize * progress).round();
+  }
+
+  List<int>? calculateWaveForm({
+    required List<int>? eventWaveForm,
+    required int waveCount,
+  }) {
+    // Handle edge cases
+    if (eventWaveForm == null || eventWaveForm.isEmpty || waveCount <= 0) {
+      return null;
+    }
+    if (waveCount == 1) return [eventWaveForm[eventWaveForm.length ~/ 2]];
+    // If we need more data points than we have, generate fake data by repeating the waveform
+    if (waveCount > eventWaveForm.length) {
+      final List<int> result = [];
+      for (int i = 0; i < waveCount; i++) {
+        // Cycle through the original waveform to generate fake data
+        final int value = eventWaveForm[i % eventWaveForm.length];
+        result.add(value);
+      }
+
+      // Apply value clamping
+      return result.map((i) => i == 0 ? 1 : (i > 1024 ? 1024 : i)).toList();
+    }
+
+    // Use interpolation-based sampling instead of insert/remove loops
+    final List<int> result = [];
+    final double step = (eventWaveForm.length - 1) / (waveCount - 1);
+
+    for (int i = 0; i < waveCount; i++) {
+      final double exactIndex = i * step;
+      final int lowerIndex = exactIndex.floor();
+      final int upperIndex =
+          (lowerIndex + 1).clamp(0, eventWaveForm.length - 1);
+
+      int sampledValue;
+      if (lowerIndex == upperIndex) {
+        sampledValue = eventWaveForm[lowerIndex];
+      } else {
+        final double fraction = exactIndex - lowerIndex;
+        final double interpolated = eventWaveForm[lowerIndex] * (1 - fraction) +
+            eventWaveForm[upperIndex] * fraction;
+        sampledValue = interpolated.round();
+      }
+
+      result.add(sampledValue);
+    }
+
+    // Apply the same value clamping as the original function
+    return result.map((i) => i == 0 ? 1 : (i > 1024 ? 1024 : i)).toList();
+  }
+
+  List<double> calculateWaveHeight({
+    required List<int> waveform,
+    required double minHeight, // B
+    required double maxHeight, // A
+  }) {
+    if (waveform.isEmpty) return [];
+
+    final int rawMax = waveform.reduce((a, b) => a > b ? a : b);
+    final int rawMin = waveform.reduce((a, b) => a < b ? a : b);
+
+    // Avoid division by zero
+    if (rawMax == rawMin) {
+      return List<double>.filled(waveform.length, (maxHeight + minHeight) / 2);
+    }
+
+    return waveform.map((x) {
+      final t = (x - rawMin) / (rawMax - rawMin);
+      return minHeight + t * (maxHeight - minHeight);
+    }).toList();
   }
 
   @override
@@ -400,5 +607,13 @@ class SoundRecordNotifier extends ChangeNotifier {
     _timerCounter?.cancel();
     recordMp3.cancel();
     super.dispose();
+  }
+}
+
+extension AudioPlayExtension on AudioPlayer {
+  bool get isAtEndPosition {
+    final duration = this.duration;
+    if (duration == null) return true;
+    return position >= duration;
   }
 }

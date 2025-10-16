@@ -30,7 +30,7 @@ class ShowCounter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: Alignment.centerLeft,
+      alignment: Alignment.bottomLeft,
       child: Container(
         height: counterHeight,
         color: counterBackGroundColor ?? Colors.transparent,

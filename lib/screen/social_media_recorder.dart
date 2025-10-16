@@ -27,6 +27,12 @@ class SocialMediaRecorder extends StatefulWidget {
   /// function called when stop recording, return the recording time (even if time < 1)
   final Function(String time)? stopRecording;
 
+  final Function()? pauseRecording;
+
+  final Function()? resumeRecording;
+
+  final Function()? deleteRecording;
+
   /// recording Icon That pressesd to start record
   final Widget recordIcon;
 
@@ -127,6 +133,26 @@ class SocialMediaRecorder extends StatefulWidget {
 
   final Decoration? decoration;
 
+  final Widget? pauseWidget;
+
+  final Widget? deleteWidget;
+
+  final double? pauseBottomPositioned;
+
+  final double? pauseRightPositioned;
+
+  final Decoration? resumeDecoration;
+
+  final Color? pauseHighlightColor;
+
+  final Color? pauseSplashColor;
+
+  final Color? pauseBackGroundColor;
+
+  final Color? pauseIconColor;
+
+  final Color? pauseBorderColor;
+
   // ignore: sort_constructors_first
   const SocialMediaRecorder({
     this.microphoneRequestPermission,
@@ -173,6 +199,19 @@ class SocialMediaRecorder extends StatefulWidget {
     this.slideToCancelPadding,
     this.recordConfig,
     this.decoration,
+    this.pauseWidget,
+    this.deleteWidget,
+    this.pauseBottomPositioned,
+    this.pauseRightPositioned,
+    this.resumeDecoration,
+    this.pauseRecording,
+    this.resumeRecording,
+    this.deleteRecording,
+    this.pauseHighlightColor,
+    this.pauseSplashColor,
+    this.pauseBackGroundColor,
+    this.pauseIconColor,
+    this.pauseBorderColor,
     Key? key,
   }) : super(key: key);
 
@@ -194,6 +233,8 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
       sendRequestFunction: widget.sendRequestFunction,
       waveCount: widget.waveCount,
       recordConfig: widget.recordConfig,
+      pauseRecording: widget.pauseRecording,
+      resumeRecording: widget.resumeRecording,
     );
 
     soundRecordNotifier.initialStorePathRecord =
@@ -215,7 +256,12 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    soundRecordNotifier.didChangeAppLifecycleState(state);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      soundRecordNotifier.didChangeAppLifecycleState(
+        state: state,
+        context: context,
+      );
+    });
   }
 
   @override
@@ -241,7 +287,8 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
   Widget makeBody(SoundRecordNotifier state) {
     return SizedBox(
       height: widget.fullRecordPackageHeight,
-      child: Row(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
           GestureDetector(
             onVerticalDragUpdate: (scrollUpdate) {
@@ -290,6 +337,17 @@ class _SocialMediaRecorder extends State<SocialMediaRecorder>
         counterWidth: widget.counterWidth,
         micCounterWidget: widget.micCounterWidget,
         counterPadding: widget.counterPadding,
+        pauseWidget: widget.pauseWidget,
+        deleteWidget: widget.deleteWidget,
+        pauseBottomPositioned: widget.pauseBottomPositioned,
+        pauseRightPositioned: widget.pauseRightPositioned,
+        resumeDecoration: widget.resumeDecoration,
+        pauseHighlightColor: widget.pauseHighlightColor,
+        pauseSplashColor: widget.pauseSplashColor,
+        pauseBackGroundColor: widget.pauseBackGroundColor,
+        pauseIconColor: widget.pauseIconColor,
+        pauseBorderColor: widget.pauseBorderColor,
+        deleteRecording: widget.deleteRecording,
       );
     }
 
