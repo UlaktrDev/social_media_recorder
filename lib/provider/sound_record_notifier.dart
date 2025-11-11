@@ -504,7 +504,10 @@ class SoundRecordNotifier extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error pausing recording: $e');
     }
-    notifyListeners();
+    // Schedule notifyListeners for next frame to avoid widget tree lock
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   void handlePlayOrPausePreviewAudio() {
@@ -515,7 +518,10 @@ class SoundRecordNotifier extends ChangeNotifier {
     } else {
       audioPlayer.play();
     }
-    notifyListeners();
+    // Schedule notifyListeners for next frame to avoid widget tree lock
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 
   int calculateWaveCountAuto({
@@ -602,10 +608,19 @@ class SoundRecordNotifier extends ChangeNotifier {
 
   @override
   dispose() {
+    // Cancel all timers and subscriptions
     _recorderSubscription?.cancel();
     _timer?.cancel();
     _timerCounter?.cancel();
+
+    // Stop and dispose audio player
+    audioPlayer.stop();
+    audioPlayer.dispose();
+
+    // Cancel recording
     recordMp3.cancel();
+
+    // Call super.dispose() last to clean up ChangeNotifier
     super.dispose();
   }
 }
